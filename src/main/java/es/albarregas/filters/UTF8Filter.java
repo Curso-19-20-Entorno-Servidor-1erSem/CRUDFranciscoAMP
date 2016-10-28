@@ -7,10 +7,12 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
 
 /**
  * Servlet Filter implementation class UTF8Filter
  */
+@WebFilter(filterName = "UTF8Filter", urlPatterns = {"/.jsp"})
 public class UTF8Filter implements Filter {
 
     private String encoding;

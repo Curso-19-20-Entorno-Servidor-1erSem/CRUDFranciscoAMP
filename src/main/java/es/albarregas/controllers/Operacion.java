@@ -68,6 +68,7 @@ public class Operacion extends HttpServlet {
                         ave.setFecha(resultado.getString("fecha"));
                         aves.add(ave);
                     }
+                    
                     request.setAttribute("lista", aves);
                     url = "listado.jsp";//?op=" + request.getParameter("op");
                 } catch (SQLException e) {
