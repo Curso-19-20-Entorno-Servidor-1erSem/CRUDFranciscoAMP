@@ -2,6 +2,7 @@ package es.albarregas.controllers;
 
 import es.albarregas.beans.Ave;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,6 +22,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+import org.apache.commons.beanutils.BeanUtils;
 
 @WebServlet(name = "Concluir", urlPatterns = {"/conclusion"})
 public class Concluir extends HttpServlet {
@@ -53,13 +55,13 @@ public class Concluir extends HttpServlet {
         PreparedStatement preparada = null;
         ResultSet resultado = null;
         Connection conexion = null;
-        
+
         try {
             conexion = datasource.getConnection();
-            if(request.getParameter("cancelar") != null){
+            if (request.getParameter("cancelar") != null) {
                 url = "index.html";
-            } else if(request.getParameter("actualizar") != null){
-                
+            } else if (request.getParameter("actualizar") != null) {
+
                 sql = "select * from aves where anilla = ?";
                 preparada = conexion.prepareStatement(sql);
                 preparada.setString(1, request.getParameter("anilla"));
@@ -68,66 +70,98 @@ public class Concluir extends HttpServlet {
                 Enumeration<String> parametros = request.getParameterNames();
                 int indice = 1;
                 boolean primeraVez = true;
-                while(parametros.hasMoreElements()){
+                while (parametros.hasMoreElements()) {
                     String nombre = parametros.nextElement();
 
-                    if(!nombre.equals("anilla") && !nombre.equals("actualizar")){
-                        if(!request.getParameter(nombre).equals(resultado.getString(indice))){
-                            if (primeraVez){
+                    if (!nombre.equals("anilla") && !nombre.equals("actualizar")) {
+                        if (!request.getParameter(nombre).equals(resultado.getString(indice))) {
+                            if (primeraVez) {
                                 clausulaWhere.append(" set ");
                                 primeraVez = false;
                             } else {
                                 clausulaWhere.append(",");
                             }
-                            
+
                             clausulaWhere.append(nombre);
                             clausulaWhere.append("='");
                             clausulaWhere.append(request.getParameter(nombre));
                             clausulaWhere.append("'");
                         }
-                        
+
                     }
                     indice++;
                 }
-                if(clausulaWhere.length() != 0){
+                if (clausulaWhere.length() != 0) {
                     sql = "update aves" + clausulaWhere.toString() + " where anilla='" + request.getParameter("anilla") + "'";
                     System.out.println("sentencia sql = " + sql);
                     sentencia = conexion.createStatement();
-                    if(sentencia.executeUpdate(sql) != 0){
+                    if (sentencia.executeUpdate(sql) != 0) {
                         url = "finActualizar.jsp";
 //                        request.setAttribute("registro", request.getParameter("anilla"));
                     } else {
                         url = "error.jsp";
-                        request.setAttribute("error", "ERROR. Ocurrió un error al actualizar la base de datos para la anilla " +request.getParameter("anilla"));
+                        request.setAttribute("error", "ERROR. Ocurrió un error al actualizar la base de datos para la anilla " + request.getParameter("anilla"));
                     }
-                
+
                 } else {
                     url = "finActualizar.jsp";
-                    request.setAttribute("sincambios", (Boolean)true);
-                    
+                    request.setAttribute("sincambios", (Boolean) true);
+
                 }
-            } else {
+            } else if (request.getParameter("eliminar") != null) {
                 String[] listado = request.getParameterValues("anilla");
-                if (listado.length == 0){
+                if (listado.length == 0) {
                     url = "index.html";
                 } else {
-                    
+
                     clausulaWhere = new StringBuilder(" where anilla in (");
-                    for(String anilla : listado){
+                    for (String anilla : listado) {
                         clausulaWhere.append("'");
                         clausulaWhere.append(anilla);
                         clausulaWhere.append("',");
                     }
-                    clausulaWhere.replace(clausulaWhere.length()-1, clausulaWhere.length(), ")");
+                    clausulaWhere.replace(clausulaWhere.length() - 1, clausulaWhere.length(), ")");
                     sql = "delete from aves " + clausulaWhere.toString();
                     System.out.println("sentencia sql = " + sql);
                     sentencia = conexion.createStatement();
-                    if(sentencia.executeUpdate(sql) != 0){
+                    if (sentencia.executeUpdate(sql) != 0) {
                         url = "finEliminar.jsp";
-                        request.setAttribute("numero", (Integer)listado.length);
+                        request.setAttribute("numero", (Integer) listado.length);
                     } else {
                         url = "error.jsp";
-                        request.setAttribute("error", "ERROR. Ocurrió un error al actualizar la base de datos para la anilla " +request.getParameter("anilla"));
+                        request.setAttribute("error", "ERROR. Ocurrió un error al actualizar la base de datos para la anilla " + request.getParameter("anilla"));
+                    }
+
+                }
+            } else {
+                ave = new Ave();
+                try {
+                    BeanUtils.populate(ave, request.getParameterMap());
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+                try {
+                sql = "insert into aves values(?,?,?,?)";
+
+                preparada = conexion.prepareStatement(sql);
+                preparada.setString(1, ave.getAnilla());
+                preparada.setString(2, ave.getEspecie());
+                preparada.setString(3, ave.getLugar());
+                preparada.setString(4, ave.getFecha());
+
+                request.setAttribute("pajaro", ave);
+                    preparada.executeUpdate();
+                    url = "finInsertar.jsp";
+                    
+                } catch (SQLException e) {
+                   
+                    if (e.getErrorCode() == 1062) {
+                        request.setAttribute("error", "ERROR. Se ha intentado duplicar la clave primaria");
+                        url = "insertar.jsp";
+                        
+                    } else {
+                        request.setAttribute("error", "ERROR. Se ha producido un error de sql");
+                        url = "error.jsp";
                     }
                     
                 }
@@ -135,25 +169,23 @@ public class Concluir extends HttpServlet {
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
-                    try {
-                        if (conexion != null) {
-                            conexion.close();
-                        }
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
-
-                    try {
-                        if (resultado != null) {
-                            resultado.close();
-                        }
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
+            try {
+                if (conexion != null) {
+                    conexion.close();
                 }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
 
-                
-        
+            try {
+                if (resultado != null) {
+                    resultado.close();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+
         request.getRequestDispatcher(url).forward(request, response);
 
     }
