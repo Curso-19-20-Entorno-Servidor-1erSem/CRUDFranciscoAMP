@@ -17,6 +17,6 @@
     </resource-ref>
     <error-page>
         <error-code>500</error-code>
-        <location>/error500.jsp</location>
+        <location>/JSP/error500.jsp</location>
     </error-page>
 </web-app>

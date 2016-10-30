@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Actualizar</title>
-<!--<link rel="stylesheet" type="text/css" href="../CSS/estilo.css" />-->
+<link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
 </head>
 <body>
     <h2>Informaci&oacute;n de la actualizaci&oacute;n</h2>

@@ -10,10 +10,11 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>Error</title>
+        <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
     </head>
     <body>
         
-        <div>
+        <div class="error">
             <a href="<%=request.getContextPath()%>"><img src="<%=request.getContextPath()%>/image/error.jpg"/></a>
         </div>
     </body>

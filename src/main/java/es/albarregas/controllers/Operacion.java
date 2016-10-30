@@ -30,7 +30,7 @@ public class Operacion extends HttpServlet {
             throws ServletException {
         try {
             Context contextoInicial = new InitialContext();
-            datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool1");
+            datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool");
         } catch (NamingException ex) {
             LOGGER.fatal("Problemas en el acceso al pool de conexiones", ex);
 
@@ -102,7 +102,7 @@ public class Operacion extends HttpServlet {
                 break;
         }
 //        System.out.println("../JSP/"+url);
-//        url = "../JSP/" + url;
+        url = "/JSP/" + url;
         request.getRequestDispatcher(url).forward(request, response);
 
     }

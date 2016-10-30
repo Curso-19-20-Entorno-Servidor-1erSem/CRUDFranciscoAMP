@@ -98,16 +98,16 @@ public class Concluir extends HttpServlet {
                    
                     sentencia = conexion.createStatement();
                     if (sentencia.executeUpdate(sql) != 0) {
-                        url = "finActualizar.jsp";
+                        url = "/JSP/finActualizar.jsp";
                         DESC.info("ACTUALIZAR. Se ha actualizado el registro de anilla " + request.getParameter("anilla"));
                         request.setAttribute("registro", request.getParameter("anilla"));
                     } else {
-                        url = "error.jsp";
+                        url = "/JSP/error.jsp";
                         request.setAttribute("error", "ERROR. Ocurrió un error al actualizar la base de datos para la anilla " + request.getParameter("anilla"));
                     }
 
                 } else {
-                    url = "finActualizar.jsp";
+                    url = "/JSP/finActualizar.jsp";
                     request.setAttribute("sincambios", (Boolean) true);
 
                 }
@@ -130,12 +130,12 @@ public class Concluir extends HttpServlet {
                     
                     sentencia = conexion.createStatement();
                     if (sentencia.executeUpdate(sql) != 0) {
-                        url = "finEliminar.jsp";
+                        url = "/JSP/finEliminar.jsp";
                         request.setAttribute("numero", (Integer) listado.length);
                         DESC.info("ELIMINAR. Se ha eliminado el registro de anilla " + 
                                 clausulaWhere.substring(clausulaWhere.indexOf("(") + 1, clausulaWhere.length()-2).replaceAll("'", ""));
                     } else {
-                        url = "error.jsp";
+                        url = "/JSP/error.jsp";
                         request.setAttribute("error", "ERROR. Ocurrió un error al actualizar la base de datos para la anilla " + request.getParameter("anilla"));
                     }
 
@@ -158,14 +158,14 @@ public class Concluir extends HttpServlet {
 
                 request.setAttribute("pajaro", ave);
                     preparada.executeUpdate();
-                    url = "finInsertar.jsp";
+                    url = "/JSP/finInsertar.jsp";
                     DESC.info("ALTAS. Se ha añadido el ave con la anilla " + ave.getAnilla());
                     
                 } catch (SQLException ex) {
                    
                     if (ex.getErrorCode() == 1062) {
                         request.setAttribute("error", "ERROR. Se ha intentado duplicar la clave primaria");
-                        url = "insertar.jsp";
+                        url = "/JSP/insertar.jsp";
                         
                     } else {
                         LOGGER.fatal("Problema con la instrucción de SQL", ex);

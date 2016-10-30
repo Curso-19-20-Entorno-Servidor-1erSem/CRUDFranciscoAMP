@@ -6,6 +6,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Nuevos</title>
+<link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
 </head>
 <body>
     
@@ -49,7 +50,7 @@
         <%
             valor = (ave != null)?(String)request.getAttribute("error"):"";
         %>
-        <td colspan="2"><%=valor%></td>
+        <td colspan="2"><p class="error"><%=valor%></p></td>
     </tr>
     
     <tr>

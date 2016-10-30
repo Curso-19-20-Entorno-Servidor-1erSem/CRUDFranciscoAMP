@@ -1,0 +1,64 @@
+@CHARSET "UTF-8";
+body {
+	font-family: Verdana;	
+	font-size: 1em;
+}
+fieldset {
+	width: 50%; 
+	border: none;
+}
+legend {
+	font-style: italic; 
+	font-size: .9em; 
+	color: blue; 
+}
+table#listado {
+	position: relative; 
+	left: 20%; 
+	width: 60%; 
+        border: 2px solid black;
+	border-collapse: separate;
+} 
+table#listado td {
+	text-align: left;
+        border: 2px solid black;
+}
+div.error {
+        text-align: center;
+        
+}
+p.error {
+	color: red;
+	font-weight: bold;
+        font-size: .9em;
+}
+div.codigo {
+	border-bottom: 2px ridge blue;
+}
+div.codigo input {
+	color: red;
+	border: none;
+	font-size: 1.3em;
+	font-weight: bold;
+}
+h2 {
+	text-align: center;
+}
+div.flotante {
+	width: 30%;
+	position: relative;
+	float: left;
+	borber: none;
+}
+p.boton {
+	font-weight: bold;
+	text-align: center;
+	font-size: 1.1em;
+}
+ol a {
+	text-decoration: none;
+}
+.boton {
+    font-size: 1em;
+    font-family: verdana;
+}

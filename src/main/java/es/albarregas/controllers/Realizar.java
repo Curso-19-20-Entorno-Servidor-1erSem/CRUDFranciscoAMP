@@ -130,6 +130,9 @@ public class Realizar extends HttpServlet {
 
                 break;
         }
+        if(!request.getParameter("op").equals("lee")){
+            url = "/JSP/" + url;
+        }
         request.getRequestDispatcher(url).forward(request, response);
 
     }

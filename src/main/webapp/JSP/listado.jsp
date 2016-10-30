@@ -8,12 +8,14 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Resultados</title>
+<link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
 </head>
 <body>
     
     <h2>Listado de todas las aves de la base de datos</h2>
-    <table>
+    
         <form action="realiza" method="post">
+            <table id="listado">
      <%
     List<Ave> listado = null;
     listado = new ArrayList();
@@ -47,17 +49,18 @@
     <%
     }
     %>
-    <td><input type="hidden" name="op" value="<%=request.getParameter("op")%>" /></td>
+    <input type="hidden" name="op" value="<%=request.getParameter("op")%>" />
     <%
         String valor = "Realizar";
         if(request.getParameter("op").equals("lee")){
             valor = "Menú";
         }
     %>
-    <td><input type="submit" name="realizar" value="<%=valor%>" /></td>
     
-        </form>
     </table>
+    <p class="boton"><input type="submit" name="realizar" value="<%=valor%>" /></p>
+        </form>
+    
     
         
 
