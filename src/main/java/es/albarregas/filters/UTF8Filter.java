@@ -12,7 +12,7 @@ import javax.servlet.annotation.WebFilter;
 /**
  * Servlet Filter implementation class UTF8Filter
  */
-@WebFilter(filterName = "UTF8Filter", urlPatterns = {"/.jsp"})
+@WebFilter(filterName = "UTF8Filter", urlPatterns = {"/*"})
 public class UTF8Filter implements Filter {
 
     private String encoding;

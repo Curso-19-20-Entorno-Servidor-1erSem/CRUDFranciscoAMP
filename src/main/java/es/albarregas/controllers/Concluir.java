@@ -10,8 +10,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -23,11 +22,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.log4j.Logger;
+
 
 @WebServlet(name = "Concluir", urlPatterns = {"/conclusion"})
 public class Concluir extends HttpServlet {
 
     DataSource datasource;
+    final static Logger LOGGER = Logger.getRootLogger();
+    final static Logger DESC = Logger.getLogger(Concluir.class);
 
     @Override
     public void init(ServletConfig config)
@@ -36,8 +39,7 @@ public class Concluir extends HttpServlet {
             Context contextoInicial = new InitialContext();
             datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool");
         } catch (NamingException ex) {
-            System.out.println("Problemas en el acceso a la BD");
-            ex.printStackTrace();
+            LOGGER.fatal("Problemas con el pool de conexiones", ex);
         }
 
     }
@@ -93,11 +95,12 @@ public class Concluir extends HttpServlet {
                 }
                 if (clausulaWhere.length() != 0) {
                     sql = "update aves" + clausulaWhere.toString() + " where anilla='" + request.getParameter("anilla") + "'";
-                    System.out.println("sentencia sql = " + sql);
+                   
                     sentencia = conexion.createStatement();
                     if (sentencia.executeUpdate(sql) != 0) {
                         url = "finActualizar.jsp";
-//                        request.setAttribute("registro", request.getParameter("anilla"));
+                        DESC.info("ACTUALIZAR. Se ha actualizado el registro de anilla " + request.getParameter("anilla"));
+                        request.setAttribute("registro", request.getParameter("anilla"));
                     } else {
                         url = "error.jsp";
                         request.setAttribute("error", "ERROR. Ocurrió un error al actualizar la base de datos para la anilla " + request.getParameter("anilla"));
@@ -113,20 +116,24 @@ public class Concluir extends HttpServlet {
                 if (listado.length == 0) {
                     url = "index.html";
                 } else {
-
+                    
                     clausulaWhere = new StringBuilder(" where anilla in (");
                     for (String anilla : listado) {
                         clausulaWhere.append("'");
                         clausulaWhere.append(anilla);
+                        
                         clausulaWhere.append("',");
+                        
                     }
                     clausulaWhere.replace(clausulaWhere.length() - 1, clausulaWhere.length(), ")");
                     sql = "delete from aves " + clausulaWhere.toString();
-                    System.out.println("sentencia sql = " + sql);
+                    
                     sentencia = conexion.createStatement();
                     if (sentencia.executeUpdate(sql) != 0) {
                         url = "finEliminar.jsp";
                         request.setAttribute("numero", (Integer) listado.length);
+                        DESC.info("ELIMINAR. Se ha eliminado el registro de anilla " + 
+                                clausulaWhere.substring(clausulaWhere.indexOf("(") + 1, clausulaWhere.length()-2).replaceAll("'", ""));
                     } else {
                         url = "error.jsp";
                         request.setAttribute("error", "ERROR. Ocurrió un error al actualizar la base de datos para la anilla " + request.getParameter("anilla"));
@@ -137,8 +144,8 @@ public class Concluir extends HttpServlet {
                 ave = new Ave();
                 try {
                     BeanUtils.populate(ave, request.getParameterMap());
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
+                } catch (IllegalAccessException | InvocationTargetException ex) {
+                    LOGGER.fatal("Problema con el enlace del formulario con el bean", ex);
                 }
                 try {
                 sql = "insert into aves values(?,?,?,?)";
@@ -152,22 +159,23 @@ public class Concluir extends HttpServlet {
                 request.setAttribute("pajaro", ave);
                     preparada.executeUpdate();
                     url = "finInsertar.jsp";
+                    DESC.info("ALTAS. Se ha añadido el ave con la anilla " + ave.getAnilla());
                     
-                } catch (SQLException e) {
+                } catch (SQLException ex) {
                    
-                    if (e.getErrorCode() == 1062) {
+                    if (ex.getErrorCode() == 1062) {
                         request.setAttribute("error", "ERROR. Se ha intentado duplicar la clave primaria");
                         url = "insertar.jsp";
                         
                     } else {
-                        request.setAttribute("error", "ERROR. Se ha producido un error de sql");
-                        url = "error.jsp";
+                        LOGGER.fatal("Problema con la instrucción de SQL", ex);
+
                     }
                     
                 }
             }
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            LOGGER.fatal("Problema con la conexion a la base de datos", ex);
         } finally {
             try {
                 if (conexion != null) {

@@ -18,11 +18,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+import org.apache.log4j.Logger;
 
 @WebServlet(name = "Realizar", urlPatterns = {"/realiza"})
 public class Realizar extends HttpServlet {
 
     DataSource datasource;
+    final static Logger LOGGER = Logger.getRootLogger();
 
     @Override
     public void init(ServletConfig config)
@@ -31,8 +33,7 @@ public class Realizar extends HttpServlet {
             Context contextoInicial = new InitialContext();
             datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool");
         } catch (NamingException ex) {
-            System.out.println("Problemas en el acceso a la BD");
-            ex.printStackTrace();
+            LOGGER.fatal("Problemas en el acceso al pool de conexiones", ex);
         }
 
     }
@@ -71,8 +72,8 @@ public class Realizar extends HttpServlet {
                     } else {
                         url = "finActualizar.jsp";
                     }
-                } catch (SQLException e) {
-                    e.printStackTrace();
+                } catch (SQLException ex) {
+                    LOGGER.fatal("Problemas en la conexión a la base de datos o en SQL", ex);
                 }
                 break;
             case "elimina":
@@ -107,8 +108,8 @@ public class Realizar extends HttpServlet {
                     } else {
                         url = "finEliminar.jsp";
                     }
-                } catch (SQLException e) {
-                    System.out.println("Error al conectar a la base de datos");
+                } catch (SQLException ex) {
+                    LOGGER.fatal("Problemas en la conexión a la base de datos o SQL", ex);
                 } finally {
                     try {
                         if (conexion != null) {

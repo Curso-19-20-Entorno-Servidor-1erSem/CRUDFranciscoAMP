@@ -17,21 +17,23 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+import org.apache.log4j.Logger;
 
 @WebServlet(name = "Operacion", urlPatterns = {"/operacion"})
 public class Operacion extends HttpServlet {
 
     DataSource datasource;
+    final static Logger LOGGER = Logger.getRootLogger();
 
     @Override
     public void init(ServletConfig config)
             throws ServletException {
         try {
             Context contextoInicial = new InitialContext();
-            datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool");
+            datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool1");
         } catch (NamingException ex) {
-            System.out.println("Problemas en el acceso a la BD");
-            ex.printStackTrace();
+            LOGGER.fatal("Problemas en el acceso al pool de conexiones", ex);
+
         }
 
     }
@@ -58,21 +60,27 @@ public class Operacion extends HttpServlet {
                     conexion = datasource.getConnection();
                     sql = "select * from aves";
                     sentencia = conexion.createStatement();
-                    resultado = sentencia.executeQuery(sql);
-                    aves = new ArrayList();
-                    while (resultado.next()) {
-                        ave = new Ave();
-                        ave.setAnilla(resultado.getString("anilla"));
-                        ave.setEspecie(resultado.getString("especie"));
-                        ave.setLugar(resultado.getString("lugar"));
-                        ave.setFecha(resultado.getString("fecha"));
-                        aves.add(ave);
+                    try {
+                        resultado = sentencia.executeQuery(sql);
+                        aves = new ArrayList();
+                        while (resultado.next()) {
+                            ave = new Ave();
+                            ave.setAnilla(resultado.getString("anilla"));
+                            ave.setEspecie(resultado.getString("especie"));
+                            ave.setLugar(resultado.getString("lugar"));
+                            ave.setFecha(resultado.getString("fecha"));
+                            aves.add(ave);
+                        }
+
+                        request.setAttribute("lista", aves);
+                        url = "listado.jsp";
+                    } catch (SQLException e) {
+                        LOGGER.fatal("Problema al ejecutar la instrucción SQL", e);
+            
                     }
-                    
-                    request.setAttribute("lista", aves);
-                    url = "listado.jsp";//?op=" + request.getParameter("op");
                 } catch (SQLException e) {
-                    System.out.println("Error al conectar a la base de datos");
+                    LOGGER.fatal("Problemas en el acceso al pool de conexiones", e);
+
                 } finally {
                     try {
                         if (conexion != null) {
