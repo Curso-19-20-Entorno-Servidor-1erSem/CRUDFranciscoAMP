@@ -52,12 +52,16 @@ public class Realizar extends HttpServlet {
         Connection conexion = null;
 
         switch (request.getParameter("op")) {
-            case "lee":
+            case "lee": // Ya hemos visto el listado de registros y volvemos al menú inicial
                 url = "index.html";
                 break;
             case "actualiza":
                 try {
                     if (request.getParameter("registro") != null) {
+                        /* 
+                        Hemos elegido actualizar algún registro para lo cual primero leemos el registro
+                        que queremos actualizar para mostrarselo al usuario
+                        */
                         conexion = datasource.getConnection();
                         sql = "select * from aves where anilla = ?";
                         preparada = conexion.prepareStatement(sql);
@@ -70,6 +74,7 @@ public class Realizar extends HttpServlet {
                         request.setAttribute("lugar", resultado.getString("lugar"));
                         request.setAttribute("fecha", resultado.getString("fecha"));
                     } else {
+                        // No hemos elegido ningún registro que actualizar y nos vamos a la página final de actualización
                         url = "finActualizar.jsp";
                     }
                 } catch (SQLException ex) {
@@ -79,8 +84,12 @@ public class Realizar extends HttpServlet {
             case "elimina":
                 try {
                     conexion = datasource.getConnection();
+                    // Almacenamos las anillas de los registros seleccionados para eliminar en el array avesEliminar
                     String[] avesEliminar = request.getParameterValues("registro");
                     StringBuilder clausulaWhere = null;
+                    /*
+                    Construimos la clausula where de la forma where anilla in ('a1','a2')
+                    */
                     if (avesEliminar != null && avesEliminar.length != 0) {
                         clausulaWhere = new StringBuilder(" where anilla in (");
                         for (int i = 0; i < avesEliminar.length; i++) {
@@ -89,9 +98,9 @@ public class Realizar extends HttpServlet {
                             clausulaWhere.append("\',");
                         }
                         clausulaWhere.replace(clausulaWhere.length() - 1, clausulaWhere.length(), ")");
-
+                        // Leemos los registros que queremos eliminar
                         sql = "select * from aves" + clausulaWhere.toString();
-                        System.out.println("sentencia de borrado " + sql);
+                        
                         sentencia = conexion.createStatement();
                         resultado = sentencia.executeQuery(sql);
                         aves = new ArrayList();
@@ -103,9 +112,11 @@ public class Realizar extends HttpServlet {
                             ave.setFecha(resultado.getString("fecha"));
                             aves.add(ave);
                         }
+                        // Guardamos los registros en un ArrayList y lo lanzamos a un atributo de la petición
                         request.setAttribute("lista", aves);
                         url = "eliminar.jsp";
                     } else {
+                        // No hemos seleccionado ningún registro que eliminar
                         url = "finEliminar.jsp";
                     }
                 } catch (SQLException ex) {
@@ -130,6 +141,7 @@ public class Realizar extends HttpServlet {
 
                 break;
         }
+        // En el caso de que no sea visualización los documentos de las diferentes vistas se encuentran en /JSP
         if(!request.getParameter("op").equals("lee")){
             url = "/JSP/" + url;
         }

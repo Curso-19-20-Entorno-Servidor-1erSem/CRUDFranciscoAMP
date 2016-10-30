@@ -36,7 +36,7 @@
     </tr>
     <%
     }
-    //request.setAttribute("lista", listaAnillas);
+    
     %>
     
     <td><input type="submit" name="cancelar" value="Cancelar" /></td>

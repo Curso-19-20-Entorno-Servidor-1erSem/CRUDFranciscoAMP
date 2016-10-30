@@ -50,9 +50,10 @@ public class Operacion extends HttpServlet {
         ResultSet resultado = null;
         Connection conexion = null;
         switch (request.getParameter("op")) {
-            case "crea":
+            case "crea": // Nos vamos a la página de crear un pajaro
                 url = "insertar.jsp";
                 break;
+            // En caso contrario leemos tos los registros de la tabla para visualizarlos en listado.jsp
             case "actualiza":
             case "lee":
             case "elimina":
@@ -74,13 +75,14 @@ public class Operacion extends HttpServlet {
 
                         request.setAttribute("lista", aves);
                         url = "listado.jsp";
+                    // En caso de error escribimos en el fichero de log y mostramos una pantalla de error
                     } catch (SQLException e) {
                         LOGGER.fatal("Problema al ejecutar la instrucción SQL", e);
             
                     }
                 } catch (SQLException e) {
                     LOGGER.fatal("Problemas en el acceso al pool de conexiones", e);
-
+                // Liberamos los recursos
                 } finally {
                     try {
                         if (conexion != null) {
@@ -101,7 +103,7 @@ public class Operacion extends HttpServlet {
 
                 break;
         }
-//        System.out.println("../JSP/"+url);
+
         url = "/JSP/" + url;
         request.getRequestDispatcher(url).forward(request, response);
 
