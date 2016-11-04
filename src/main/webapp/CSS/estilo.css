@@ -55,7 +55,7 @@ p.boton {
 	text-align: center;
 	font-size: 1.1em;
 }
-ol a {
+ol a, a {
 	text-decoration: none;
 }
 .boton {

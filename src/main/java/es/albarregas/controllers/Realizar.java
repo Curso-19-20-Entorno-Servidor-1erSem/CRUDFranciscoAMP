@@ -1,6 +1,7 @@
 package es.albarregas.controllers;
 
 import es.albarregas.beans.Ave;
+import es.albarregas.conexion.Conexion;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,35 +9,21 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.servlet.ServletConfig;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
+
 import org.apache.log4j.Logger;
 
 @WebServlet(name = "Realizar", urlPatterns = {"/realiza"})
 public class Realizar extends HttpServlet {
 
-    DataSource datasource;
+
     final static Logger LOGGER = Logger.getRootLogger();
 
-    @Override
-    public void init(ServletConfig config)
-            throws ServletException {
-        try {
-            Context contextoInicial = new InitialContext();
-            datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool");
-        } catch (NamingException ex) {
-            LOGGER.fatal("Problemas en el acceso al pool de conexiones", ex);
-        }
-
-    }
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -62,7 +49,7 @@ public class Realizar extends HttpServlet {
                         Hemos elegido actualizar algún registro para lo cual primero leemos el registro
                         que queremos actualizar para mostrarselo al usuario
                         */
-                        conexion = datasource.getConnection();
+                        conexion = Conexion.getDataSource().getConnection();
                         sql = "select * from aves where anilla = ?";
                         preparada = conexion.prepareStatement(sql);
                         preparada.setString(1, request.getParameter("registro"));
@@ -83,7 +70,7 @@ public class Realizar extends HttpServlet {
                 break;
             case "elimina":
                 try {
-                    conexion = datasource.getConnection();
+                    conexion = Conexion.getDataSource().getConnection();
                     // Almacenamos las anillas de los registros seleccionados para eliminar en el array avesEliminar
                     String[] avesEliminar = request.getParameterValues("registro");
                     StringBuilder clausulaWhere = null;
@@ -122,21 +109,8 @@ public class Realizar extends HttpServlet {
                 } catch (SQLException ex) {
                     LOGGER.fatal("Problemas en la conexión a la base de datos o SQL", ex);
                 } finally {
-                    try {
-                        if (conexion != null) {
-                            conexion.close();
-                        }
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
 
-                    try {
-                        if (resultado != null) {
-                            resultado.close();
-                        }
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
+                    Conexion.closeConexion(conexion, resultado);
                 }
 
                 break;

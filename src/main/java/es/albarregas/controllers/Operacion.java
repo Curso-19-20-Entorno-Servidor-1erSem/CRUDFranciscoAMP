@@ -1,42 +1,27 @@
 package es.albarregas.controllers;
 
 import es.albarregas.beans.Ave;
+import es.albarregas.conexion.Conexion;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.servlet.ServletConfig;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
+
 import org.apache.log4j.Logger;
 
 @WebServlet(name = "Operacion", urlPatterns = {"/operacion"})
 public class Operacion extends HttpServlet {
 
-    DataSource datasource;
+
     final static Logger LOGGER = Logger.getRootLogger();
-
-    @Override
-    public void init(ServletConfig config)
-            throws ServletException {
-        try {
-            Context contextoInicial = new InitialContext();
-            datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool");
-        } catch (NamingException ex) {
-            LOGGER.fatal("Problemas en el acceso al pool de conexiones", ex);
-
-        }
-
-    }
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -58,7 +43,7 @@ public class Operacion extends HttpServlet {
             case "lee":
             case "elimina":
                 try {
-                    conexion = datasource.getConnection();
+                    conexion = Conexion.getDataSource().getConnection();
                     sql = "select * from aves";
                     sentencia = conexion.createStatement();
                     try {
@@ -84,21 +69,8 @@ public class Operacion extends HttpServlet {
                     LOGGER.fatal("Problemas en el acceso al pool de conexiones", e);
                 // Liberamos los recursos
                 } finally {
-                    try {
-                        if (conexion != null) {
-                            conexion.close();
-                        }
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
 
-                    try {
-                        if (resultado != null) {
-                            resultado.close();
-                        }
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
+                    Conexion.closeConexion(conexion, resultado);
                 }
 
                 break;

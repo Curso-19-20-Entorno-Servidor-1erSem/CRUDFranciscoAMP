@@ -1,6 +1,7 @@
 package es.albarregas.controllers;
 
 import es.albarregas.beans.Ave;
+import es.albarregas.conexion.Conexion;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
@@ -11,39 +12,25 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.sql.DataSource;
+
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.log4j.Logger;
 
 @WebServlet(name = "Concluir", urlPatterns = {"/conclusion"})
 public class Concluir extends HttpServlet {
 
-    DataSource datasource;
+
     // logger general para toda la aplicación
     final static Logger LOGGER = Logger.getRootLogger();
     // logger destinado a llevar un registro de las diferentes operaciones exitosas
     final static Logger DESC = Logger.getLogger(Concluir.class);
 
-    @Override
-    public void init(ServletConfig config)
-            throws ServletException {
-        try {
-            Context contextoInicial = new InitialContext();
-            datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool");
-        } catch (NamingException ex) {
-            LOGGER.fatal("Problemas con el pool de conexiones", ex);
-        }
 
-    }
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -60,7 +47,7 @@ public class Concluir extends HttpServlet {
         Connection conexion = null;
 
         try {
-            conexion = datasource.getConnection();
+            conexion = Conexion.getDataSource().getConnection();
             if (request.getParameter("cancelar") != null) {
                 // En el caso de haber pulsado Cancelar nos dirigimos al menú principal
                 url = "index.html";
@@ -200,21 +187,8 @@ public class Concluir extends HttpServlet {
         } catch (SQLException ex) {
             LOGGER.fatal("Problema con la conexion a la base de datos", ex);
         } finally {
-            try {
-                if (conexion != null) {
-                    conexion.close();
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
 
-            try {
-                if (resultado != null) {
-                    resultado.close();
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
+            Conexion.closeConexion(conexion, resultado);
         }
 
         request.getRequestDispatcher(url).forward(request, response);

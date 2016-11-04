@@ -1,6 +1,8 @@
 package es.albarregas.beans;
 
-public class Ave {
+import java.io.Serializable;
+
+public class Ave implements Serializable{
 
     String anilla;
     String especie;
