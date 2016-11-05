@@ -8,21 +8,28 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import javax.servlet.ServletConfig;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
 @WebServlet(name = "Operacion", urlPatterns = {"/operacion"})
 public class Operacion extends HttpServlet {
 
-
+    DataSource datasource = null;
     final static Logger LOGGER = Logger.getRootLogger();
 
+    public void init(ServletConfig config) throws ServletException {
+        
+        datasource = Conexion.getDataSource();
+    }
+    
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -43,7 +50,7 @@ public class Operacion extends HttpServlet {
             case "lee":
             case "elimina":
                 try {
-                    conexion = Conexion.getDataSource().getConnection();
+                    conexion = datasource.getConnection();
                     sql = "select * from aves";
                     sentencia = conexion.createStatement();
                     try {

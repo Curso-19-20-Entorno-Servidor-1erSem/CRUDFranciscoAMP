@@ -11,12 +11,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import javax.servlet.ServletConfig;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.log4j.Logger;
@@ -24,13 +26,16 @@ import org.apache.log4j.Logger;
 @WebServlet(name = "Concluir", urlPatterns = {"/conclusion"})
 public class Concluir extends HttpServlet {
 
-
+    DataSource datasource = null;
     // logger general para toda la aplicación
     final static Logger LOGGER = Logger.getRootLogger();
     // logger destinado a llevar un registro de las diferentes operaciones exitosas
     final static Logger DESC = Logger.getLogger(Concluir.class);
 
-
+    public void init(ServletConfig config) throws ServletException {
+        
+        datasource = Conexion.getDataSource();
+    }
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -47,7 +52,7 @@ public class Concluir extends HttpServlet {
         Connection conexion = null;
 
         try {
-            conexion = Conexion.getDataSource().getConnection();
+            conexion = datasource.getConnection();
             if (request.getParameter("cancelar") != null) {
                 // En el caso de haber pulsado Cancelar nos dirigimos al menú principal
                 url = "index.html";

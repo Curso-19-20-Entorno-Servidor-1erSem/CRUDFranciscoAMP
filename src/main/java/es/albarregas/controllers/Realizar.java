@@ -9,22 +9,28 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import javax.servlet.ServletConfig;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
 @WebServlet(name = "Realizar", urlPatterns = {"/realiza"})
 public class Realizar extends HttpServlet {
 
-
+    DataSource datasource = null;
     final static Logger LOGGER = Logger.getRootLogger();
 
-
+    public void init(ServletConfig config) throws ServletException {
+        
+        datasource = Conexion.getDataSource();
+    }
+    
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -49,7 +55,7 @@ public class Realizar extends HttpServlet {
                         Hemos elegido actualizar algún registro para lo cual primero leemos el registro
                         que queremos actualizar para mostrarselo al usuario
                         */
-                        conexion = Conexion.getDataSource().getConnection();
+                        conexion = datasource.getConnection();
                         sql = "select * from aves where anilla = ?";
                         preparada = conexion.prepareStatement(sql);
                         preparada.setString(1, request.getParameter("registro"));
