@@ -43,12 +43,13 @@ public class Realizar extends HttpServlet {
         PreparedStatement preparada = null;
         ResultSet resultado = null;
         Connection conexion = null;
+        
 
-        switch (request.getParameter("op")) {
-            case "lee": // Ya hemos visto el listado de registros y volvemos al menú inicial
+        if (request.getParameter("op").equals("lee") || request.getParameter("cancelar") != null) {
+            // Ya hemos visto el listado de registros o hemos pulsado Cancelar y volvemos al menú inicial
                 url = "index.html";
-                break;
-            case "actualiza":
+               
+        } else if (request.getParameter("op").equals("actualiza")) {
                 try {
                     if (request.getParameter("registro") != null) {
                         /* 
@@ -73,8 +74,8 @@ public class Realizar extends HttpServlet {
                 } catch (SQLException ex) {
                     LOGGER.fatal("Problemas en la conexión a la base de datos o en SQL", ex);
                 }
-                break;
-            case "elimina":
+        } else { // Hemos elegido eliminar
+            
                 try {
                     conexion = Conexion.getDataSource().getConnection();
                     // Almacenamos las anillas de los registros seleccionados para eliminar en el array avesEliminar
@@ -119,10 +120,10 @@ public class Realizar extends HttpServlet {
                     Conexion.closeConexion(conexion, resultado);
                 }
 
-                break;
+                
         }
         // En el caso de que no sea visualización los documentos de las diferentes vistas se encuentran en /JSP
-        if(!request.getParameter("op").equals("lee")){
+        if(!request.getParameter("op").equals("lee") && request.getParameter("cancelar") == null){
             url = "/JSP/" + url;
         }
         request.getRequestDispatcher(url).forward(request, response);

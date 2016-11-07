@@ -11,7 +11,7 @@
 <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
 </head>
 <body>
-    
+    <div id="principal">
     <h2>Aves que se van a eliminar</h2>
     <table>
         <form action="conclusion" method="post">
@@ -44,7 +44,7 @@
         </form>
     </table>
     
-        
+    </div>   
 
 <br />
 

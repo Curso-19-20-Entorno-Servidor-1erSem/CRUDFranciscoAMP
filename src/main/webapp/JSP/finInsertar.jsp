@@ -13,7 +13,7 @@
     <%
         Ave ave = (Ave)request.getAttribute("pajaro");
     %>
-    
+    <div id="principal">
     <h2>Informaci&oacute;n de nuevas altas</h2>
     <h3>Los datos introducidos en la base de datos son</h3>
     <table>
@@ -40,13 +40,14 @@
     </tr>
     <tr>
         
-        <td><a href="<%= request.getContextPath()%>">Men&uacute; inicial</a></td>
+        <td></td>
     </tr>
     
        
     </table>
+    <p id="volver"><a href="<%= request.getContextPath()%>">Men&uacute; inicial</a></p>
     
-        
+    </div>    
 
 <br />
 

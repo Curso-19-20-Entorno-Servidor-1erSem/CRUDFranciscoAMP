@@ -11,8 +11,17 @@
 <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
 </head>
 <body>
-    
-    <h2>Listado de todas las aves de la base de datos</h2>
+    <%
+        String titulo = "Listado de todas las aves";
+        switch(request.getParameter("op")){
+            case "elimina":
+                titulo = "Elige uno o más aves que eliminar";
+                break;
+            case "actualiza":
+                titulo = "Elige un ave para actualizar";
+        }
+    %>
+    <h2><%=titulo%></h2>
     
         <form action="realiza" method="post">
             <table id="listado">
@@ -57,8 +66,17 @@
         }
     %>
     
+    <tr>
+    <td class="boton"><input type="submit" name="realizar" value="<%=valor%>" /></td>
+    <%
+        if(!request.getParameter("op").equals("lee")){
+            %>
+            <td class="boton"><input type="submit" name="cancelar" value="Cancelar" /></td>
+            <%
+        }
+    %>
+    </tr>
     </table>
-    <p class="boton"><input type="submit" name="realizar" value="<%=valor%>" /></p>
         </form>
     
     

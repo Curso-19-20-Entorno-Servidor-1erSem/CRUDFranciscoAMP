@@ -8,15 +8,20 @@
 <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
 </head>
 <body>
+    <div id="principal">
     <h2>Informaci&oacute;n sobre el borrado de registros</h2>
     <%
+        String estilo = "normal";
         String mensaje = "Se eliminaron " + request.getAttribute("numero") + " registros";
         if(request.getAttribute("numero") == null){
+            estilo = "error";
             mensaje = "No se ha seleccionado ningún registro que eliminar";
         }
     %>
-    <h3><%=mensaje%></h3>
+    <h3 class="<%=estilo%>"><%=mensaje%></h3>
+    
 <br />
-<p><a href="<%= request.getContextPath()%>">Men&uacute; inicial</a></p>
+<p id="volver"><a href="<%= request.getContextPath()%>">Men&uacute; inicial</a></p>
+</div>
 </body>
 </html>

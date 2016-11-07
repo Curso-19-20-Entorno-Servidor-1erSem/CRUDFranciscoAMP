@@ -9,7 +9,7 @@
 <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
 </head>
 <body>
-    
+    <div id="principal">
     <h2>A&ntilde;adir nueva aves</h2>
     <table>
         <form action="conclusion" method="post">
@@ -48,7 +48,7 @@
     
     <tr>
         <%
-            valor = (ave != null)?(String)request.getAttribute("error"):"";
+            valor = (ave != null)?(String)request.getAttribute("error"):" ";
         %>
         <td colspan="2"><p class="error"><%=valor%></p></td>
     </tr>
@@ -60,7 +60,7 @@
     
         </form>
     </table>
-    
+    </div>
         
 
 <br />

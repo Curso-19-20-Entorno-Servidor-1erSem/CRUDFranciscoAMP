@@ -45,7 +45,7 @@ public class Operacion extends HttpServlet {
             case "crea": // Nos vamos a la página de crear un pajaro
                 url = "insertar.jsp";
                 break;
-            // En caso contrario leemos tos los registros de la tabla para visualizarlos en listado.jsp
+            // En caso contrario leemos todos los registros de la tabla para visualizarlos en listado.jsp
             case "actualiza":
             case "lee":
             case "elimina":

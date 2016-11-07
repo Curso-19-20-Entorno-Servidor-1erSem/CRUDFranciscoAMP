@@ -9,7 +9,7 @@
 <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
 </head>
 <body>
-    
+    <div id="principal">
     <h2>Actualizar los datos de un ave</h2>
     <table>
         <form action="conclusion" method="post">
@@ -41,7 +41,7 @@
         </form>
     </table>
     
-        
+    </div>    
 
 <br />
 

@@ -98,15 +98,17 @@ public class Concluir extends HttpServlet {
                     sql = "update aves" + clausulaWhere.toString() + " where anilla='" + request.getParameter("anilla") + "'";
                     // Actualizamos el registro en la base de datos
                     sentencia = conexion.createStatement();
-                    if (sentencia.executeUpdate(sql) != 0) {
+                    try {
+//                    if (sentencia.executeUpdate(sql) != 0) {
+                        sentencia.executeUpdate(sql);
                         url = "/JSP/finActualizar.jsp";
                         // Añadimos al log de información la operación que se ha realizado
                         DESC.info("ACTUALIZAR. Se ha actualizado el registro de anilla " + request.getParameter("anilla"));
                         request.setAttribute("registro", request.getParameter("anilla"));
-                    } else {
-                        // En el caso de que se haya producido algún error se notificará en la página correspondiente
-                        url = "/JSP/error.jsp";
-                        request.setAttribute("error", "ERROR. Ocurrió un error al actualizar la base de datos para la anilla " + request.getParameter("anilla"));
+                    } catch(SQLException e) {
+                        // En el caso de que se haya producido algún error se notificará en el fichero de log
+//                        
+                        LOGGER.fatal("Problema al ejecutar la instrucción SQL", e);
                     }
 
                 } else {
@@ -134,17 +136,20 @@ public class Concluir extends HttpServlet {
                 sql = "delete from aves " + clausulaWhere.toString();
 
                 sentencia = conexion.createStatement();
-                if (sentencia.executeUpdate(sql) != 0) {
+//                if (sentencia.executeUpdate(sql) != 0) {
+                try {
+                    sentencia.executeUpdate(sql);
                     // Todo correcto, visualizaremos el número de registros eliminado
                     url = "/JSP/finEliminar.jsp";
                     request.setAttribute("numero", (Integer) listado.length);
                     // Añadimos al log de información la operación que se ha realizado
                     DESC.info("ELIMINAR. Se ha eliminado el registro de anilla "
                             + clausulaWhere.substring(clausulaWhere.indexOf("(") + 1, clausulaWhere.length() - 2).replaceAll("'", ""));
-                } else {
-                    // En el caso de que se haya producido algún error se notificará en la página correspondiente
-                    url = "/JSP/error.jsp";
-                    request.setAttribute("error", "ERROR. Ocurrió un error al actualizar la base de datos para la anilla " + request.getParameter("anilla"));
+                } catch (SQLException e){
+
+                    // En el caso de que se haya producido algún error se notificará 
+                    //  en el fichero de log
+                    LOGGER.fatal("Problema al ejecutar la instrucción SQL", e);
                 }
 
             } else {
@@ -178,7 +183,7 @@ public class Concluir extends HttpServlet {
                         En el caso de claves duplicadas volvemos a la página insertar.jsp donde se notificará el error y
                         mantendrán los datos anteriormente introducidos salvo la anilla
                         */
-                        request.setAttribute("error", "ERROR. Se ha intentado duplicar la clave primaria");
+                        request.setAttribute("error", "Se ha intentado duplicar la clave primaria");
                         url = "/JSP/insertar.jsp";
 
                     } else {
