@@ -27,10 +27,10 @@ public class Realizar extends HttpServlet {
     final static Logger LOGGER = Logger.getRootLogger();
 
     public void init(ServletConfig config) throws ServletException {
-        
+
         datasource = Conexion.getDataSource();
     }
-    
+
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -43,23 +43,25 @@ public class Realizar extends HttpServlet {
         PreparedStatement preparada = null;
         ResultSet resultado = null;
         Connection conexion = null;
-        
 
-        if (request.getParameter("op").equals("lee") || request.getParameter("cancelar") != null) {
-            // Ya hemos visto el listado de registros o hemos pulsado Cancelar y volvemos al menú inicial
+        try {
+            conexion = datasource.getConnection();
+            if (request.getParameter("op").equals("lee") || request.getParameter("cancelar") != null) {
+                // Ya hemos visto el listado de registros o hemos pulsado Cancelar y volvemos al menú inicial
                 url = "index.html";
-               
-        } else if (request.getParameter("op").equals("actualiza")) {
-                try {
-                    if (request.getParameter("registro") != null) {
-                        /* 
+
+            } else if (request.getParameter("op").equals("actualiza")) {
+
+                if (request.getParameter("registro") != null) {
+                    /* 
                         Hemos elegido actualizar algún registro para lo cual primero leemos el registro
                         que queremos actualizar para mostrarselo al usuario
-                        */
-                        conexion = datasource.getConnection();
-                        sql = "select * from aves where anilla = ?";
-                        preparada = conexion.prepareStatement(sql);
-                        preparada.setString(1, request.getParameter("registro"));
+                     */
+
+                    sql = "select * from aves where anilla = ?";
+                    preparada = conexion.prepareStatement(sql);
+                    preparada.setString(1, request.getParameter("registro"));
+                    try {
                         resultado = preparada.executeQuery();
                         resultado.next();
                         url = "actualizar.jsp";
@@ -67,35 +69,35 @@ public class Realizar extends HttpServlet {
                         request.setAttribute("especie", resultado.getString("especie"));
                         request.setAttribute("lugar", resultado.getString("lugar"));
                         request.setAttribute("fecha", resultado.getString("fecha"));
-                    } else {
-                        // No hemos elegido ningún registro que actualizar y nos vamos a la página final de actualización
-                        url = "finActualizar.jsp";
+                    } catch (SQLException e) {
+                        LOGGER.fatal("Problemas con la sentencia SQL", e);
                     }
-                } catch (SQLException ex) {
-                    LOGGER.fatal("Problemas en la conexión a la base de datos o en SQL", ex);
+                } else {
+                    // No hemos elegido ningún registro que actualizar y nos vamos a la página final de actualización
+                    url = "finActualizar.jsp";
                 }
-        } else { // Hemos elegido eliminar
-            
-                try {
-                    conexion = Conexion.getDataSource().getConnection();
-                    // Almacenamos las anillas de los registros seleccionados para eliminar en el array avesEliminar
-                    String[] avesEliminar = request.getParameterValues("registro");
-                    StringBuilder clausulaWhere = null;
-                    /*
+
+            } else { // Hemos elegido eliminar
+
+                // Almacenamos las anillas de los registros seleccionados para eliminar en el array avesEliminar
+                String[] avesEliminar = request.getParameterValues("registro");
+                StringBuilder clausulaWhere = null;
+                /*
                     Construimos la clausula where de la forma where anilla in ('a1','a2')
-                    */
-                    if (avesEliminar != null && avesEliminar.length != 0) {
-                        clausulaWhere = new StringBuilder(" where anilla in (");
-                        for (int i = 0; i < avesEliminar.length; i++) {
-                            clausulaWhere.append("\'");
-                            clausulaWhere.append(avesEliminar[i]);
-                            clausulaWhere.append("\',");
-                        }
-                        clausulaWhere.replace(clausulaWhere.length() - 1, clausulaWhere.length(), ")");
-                        // Leemos los registros que queremos eliminar
-                        sql = "select * from aves" + clausulaWhere.toString();
-                        
-                        sentencia = conexion.createStatement();
+                 */
+                if (avesEliminar != null && avesEliminar.length != 0) {
+                    clausulaWhere = new StringBuilder(" where anilla in (");
+                    for (int i = 0; i < avesEliminar.length; i++) {
+                        clausulaWhere.append("\'");
+                        clausulaWhere.append(avesEliminar[i]);
+                        clausulaWhere.append("\',");
+                    }
+                    clausulaWhere.replace(clausulaWhere.length() - 1, clausulaWhere.length(), ")");
+                    // Leemos los registros que queremos eliminar
+                    sql = "select * from aves" + clausulaWhere.toString();
+
+                    sentencia = conexion.createStatement();
+                    try {
                         resultado = sentencia.executeQuery(sql);
                         aves = new ArrayList();
                         while (resultado.next()) {
@@ -109,25 +111,26 @@ public class Realizar extends HttpServlet {
                         // Guardamos los registros en un ArrayList y lo lanzamos a un atributo de la petición
                         request.setAttribute("lista", aves);
                         url = "eliminar.jsp";
-                    } else {
-                        // No hemos seleccionado ningún registro que eliminar
-                        url = "finEliminar.jsp";
+                    } catch (SQLException e) {
+                        LOGGER.fatal("Problemas con la sentencia SQL", e);
                     }
-                } catch (SQLException ex) {
-                    LOGGER.fatal("Problemas en la conexión a la base de datos o SQL", ex);
-                } finally {
-
-                    Conexion.closeConexion(conexion, resultado);
+                } else {
+                    // No hemos seleccionado ningún registro que eliminar
+                    url = "finEliminar.jsp";
                 }
 
-                
-        }
-        // En el caso de que no sea visualización los documentos de las diferentes vistas se encuentran en /JSP
-        if(!request.getParameter("op").equals("lee") && request.getParameter("cancelar") == null){
-            url = "/JSP/" + url;
-        }
-        request.getRequestDispatcher(url).forward(request, response);
+            }
+            // En el caso de que no sea visualización los documentos de las diferentes vistas se encuentran en /JSP
+            if (!request.getParameter("op").equals("lee") && request.getParameter("cancelar") == null) {
+                url = "/JSP/" + url;
+            }
+            request.getRequestDispatcher(url).forward(request, response);
 
+        } catch (SQLException ex) {
+            LOGGER.fatal("Problemas en la conexión a la base de datos o SQL", ex);
+        } finally {
+
+            Conexion.closeConexion(conexion, resultado);
+        }
     }
-
 }

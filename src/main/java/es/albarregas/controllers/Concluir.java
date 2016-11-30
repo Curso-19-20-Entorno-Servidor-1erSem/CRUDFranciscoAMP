@@ -99,7 +99,7 @@ public class Concluir extends HttpServlet {
                     // Actualizamos el registro en la base de datos
                     sentencia = conexion.createStatement();
                     try {
-//                    if (sentencia.executeUpdate(sql) != 0) {
+
                         sentencia.executeUpdate(sql);
                         url = "/JSP/finActualizar.jsp";
                         // Añadimos al log de información la operación que se ha realizado

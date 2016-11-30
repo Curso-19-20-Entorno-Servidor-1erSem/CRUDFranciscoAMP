@@ -24,7 +24,7 @@ public class Operacion extends HttpServlet {
 
     DataSource datasource = null;
     final static Logger LOGGER = Logger.getRootLogger();
-
+    
     public void init(ServletConfig config) throws ServletException {
         
         datasource = Conexion.getDataSource();
