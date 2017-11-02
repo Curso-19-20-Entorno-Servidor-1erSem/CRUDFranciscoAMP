@@ -7,10 +7,10 @@
       maxIdle="30" 
       maxWait="10000" 
       name="jdbc/CRUDPool" 
-      password="2017" 
+      password="2018" 
       type="javax.sql.DataSource" 
       url="jdbc:mysql://localhost:3306/pruebasJAVA" 
-      username="java2017"
+      username="java2018"
   />
 </Context>
 

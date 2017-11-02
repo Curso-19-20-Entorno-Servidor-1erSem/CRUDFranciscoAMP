@@ -17,9 +17,9 @@ public class UTF8Filter implements Filter {
 
     private String encoding;
 
-    public void init(FilterConfig fConfig) throws ServletException {
+    public void init(FilterConfig filterConfig) throws ServletException {
         // TODO Auto-generated method stub
-        encoding = fConfig.getInitParameter("requestEncoding");
+        encoding = filterConfig.getInitParameter("requestEncoding");
         if (encoding == null) {
             encoding = "UTF-8";
         }
