@@ -1,13 +1,14 @@
 package es.albarregas.beans;
 
 import java.io.Serializable;
+import java.sql.Date;
 
 public class Ave implements Serializable{
 
     String anilla;
     String especie;
     String lugar;
-    String fecha;
+    Date fecha;
 
     public String getAnilla() {
         return anilla;
@@ -33,11 +34,11 @@ public class Ave implements Serializable{
         this.lugar = lugar;
     }
 
-    public String getFecha() {
+    public Date getFecha() {
         return fecha;
     }
 
-    public void setFecha(String fecha) {
+    public void setFecha(Date fecha) {
         this.fecha = fecha;
     }
     

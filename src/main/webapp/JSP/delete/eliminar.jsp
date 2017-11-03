@@ -1,5 +1,4 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List"%>
 <%@ page import="java.util.ArrayList"%>
 <%@ page import="es.albarregas.beans.Ave"%>
@@ -7,13 +6,19 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Resultados</title>
+<title>Eliminar</title>
 <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
 </head>
 <body>
     <div id="principal">
     <h2>Aves que se van a eliminar</h2>
     <table>
+        <tr>
+                        
+                        <th>Especie</th>
+                        <th>Lugar</th>
+                        <th>Fecha</th>
+                    </tr>
         <form action="conclusion" method="post">
      <%
     List<Ave> listado = null;
@@ -34,6 +39,7 @@
         
         
     </tr>
+    <tr><td colspan="2">&nbsp;</td></tr>
     <%
     }
     

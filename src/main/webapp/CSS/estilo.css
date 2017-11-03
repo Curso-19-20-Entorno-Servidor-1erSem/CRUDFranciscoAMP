@@ -1,7 +1,7 @@
 @CHARSET "UTF-8";
 body {
-	font-family: Verdana;	
-	font-size: 1em;
+    font-family: Verdana;	
+    font-size: 1em;
 }
 div#principal {
     width: 50%;
@@ -24,23 +24,23 @@ div#principal div#secundario {
     left: 40%;
 }
 fieldset {
-	width: 50%; 
-	border: none;
+    width: 50%; 
+    border: none;
 }
 legend {
-	font-style: italic; 
-	font-size: .9em; 
-	color: blue; 
+    font-style: italic; 
+    font-size: .9em; 
+    color: blue; 
 }
 table#listado {
-	position: relative; 
-	left: 25%; 
-	width: 50%; 
-        
+    position: relative; 
+    left: 25%; 
+    width: 50%; 
+
 } 
 table#listado td {
-	text-align: left;
-        
+    text-align: left;
+
 }
 div.error {
     width: 60%;
@@ -57,42 +57,42 @@ h3 {
     text-align: center;
 }
 h3.error, p.error{
-	color: red;
-	
+    color: red;
+
 }
 h3.normal {
-	color: green;
+    color: green;
 
 }
 h3.aviso {
-	color: orange;
-	
+    color: orange;
+
 }
 div.codigo {
-	border-bottom: 2px ridge blue;
+    border-bottom: 2px ridge blue;
 }
 div.codigo input {
-	color: red;
-	border: none;
-	font-size: 1.3em;
-	font-weight: bold;
+    color: red;
+    border: none;
+    font-size: 1.3em;
+    font-weight: bold;
 }
 h2 {
-	text-align: center;
+    text-align: center;
 }
 div.flotante {
-	width: 30%;
-	position: relative;
-	float: left;
-	borber: none;
+    width: 30%;
+    position: relative;
+    float: left;
+    borber: none;
 }
 p.boton {
-	font-weight: bold;
-	text-align: center;
-	font-size: 1.1em;
+    font-weight: bold;
+    text-align: center;
+    font-size: 1.1em;
 }
 ol a, a {
-	text-decoration: none;
+    text-decoration: none;
 }
 p#volver {
     text-align: center;
@@ -104,4 +104,5 @@ p#volver {
 div#principal table {
     width: 70%;
     left: 15%;
+    margin: 10px;
 }

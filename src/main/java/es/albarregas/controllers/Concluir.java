@@ -1,7 +1,9 @@
 package es.albarregas.controllers;
 
 import es.albarregas.beans.Ave;
-import es.albarregas.conexion.Conexion;
+import es.albarregas.connections.Conexion;
+import es.albarregas.utils.MyLogger;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
@@ -11,8 +13,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import javax.servlet.ServletConfig;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -21,27 +23,25 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.log4j.Logger;
+
 
 @WebServlet(name = "Concluir", urlPatterns = {"/conclusion"})
 public class Concluir extends HttpServlet {
 
-    DataSource datasource = null;
-    // logger general para toda la aplicación
-    final static Logger LOGGER = Logger.getRootLogger();
-    // logger destinado a llevar un registro de las diferentes operaciones exitosas
-    final static Logger DESC = Logger.getLogger(Concluir.class);
+    DataSource dataSource = null;
 
+    @Override
     public void init(ServletConfig config) throws ServletException {
         
-        datasource = Conexion.getDataSource();
+        dataSource = Conexion.getDataSource();
+
     }
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String url = null;
+        StringBuilder url = null;
         String sql = null;
         StringBuilder clausulaWhere = new StringBuilder();
         Ave ave = null;
@@ -52,13 +52,13 @@ public class Concluir extends HttpServlet {
         Connection conexion = null;
 
         try {
-            conexion = datasource.getConnection();
+            conexion = dataSource.getConnection();
             if (request.getParameter("cancelar") != null) {
                 // En el caso de haber pulsado Cancelar nos dirigimos al menú principal
-                url = "index.html";
+                url = new StringBuilder("index.html");
             } else if (request.getParameter("actualizar") != null) {
                 // Venimos de la página donde se introducen los datos que queremos actualizar (actualizar.jsp)
-                sql = "select * from aves where anilla = ?";
+                sql = "select * from pajaros where anilla = ?";
                 preparada = conexion.prepareStatement(sql);
                 preparada.setString(1, request.getParameter("anilla"));
                 // Leemos los datos de la base de datos para comprobar los que han cambiado
@@ -95,25 +95,27 @@ public class Concluir extends HttpServlet {
 
                 if (clausulaWhere.length() != 0) {
                     // Si se han realizado cambios en el registro
-                    sql = "update aves" + clausulaWhere.toString() + " where anilla='" + request.getParameter("anilla") + "'";
+                    sql = "update pajaros" + clausulaWhere.toString() + " where anilla='" + request.getParameter("anilla") + "'";
                     // Actualizamos el registro en la base de datos
                     sentencia = conexion.createStatement();
                     try {
 
                         sentencia.executeUpdate(sql);
-                        url = "/JSP/finActualizar.jsp";
+                        url = new StringBuilder("update/finActualizar.jsp");
                         // Añadimos al log de información la operación que se ha realizado
-                        DESC.info("ACTUALIZAR. Se ha actualizado el registro de anilla " + request.getParameter("anilla"));
+
+                        
                         request.setAttribute("registro", request.getParameter("anilla"));
                     } catch(SQLException e) {
                         // En el caso de que se haya producido algún error se notificará en el fichero de log
-//                        
-                        LOGGER.fatal("Problema al ejecutar la instrucción SQL", e);
+
+                        MyLogger.doLog(e, this.getClass(), "error");
+                        url = new StringBuilder("error500.jsp");
                     }
 
                 } else {
                     // Visualizaremos que no se han realizado cambios
-                    url = "/JSP/finActualizar.jsp";
+                    url = new StringBuilder("update/finActualizar.jsp");
                     request.setAttribute("sincambios", (Boolean) true);
 
                 }
@@ -133,23 +135,24 @@ public class Concluir extends HttpServlet {
 
                 }
                 clausulaWhere.replace(clausulaWhere.length() - 1, clausulaWhere.length(), ")");
-                sql = "delete from aves " + clausulaWhere.toString();
+                sql = "delete from pajaros " + clausulaWhere.toString();
 
                 sentencia = conexion.createStatement();
-//                if (sentencia.executeUpdate(sql) != 0) {
+
                 try {
                     sentencia.executeUpdate(sql);
-                    // Todo correcto, visualizaremos el número de registros eliminado
-                    url = "/JSP/finEliminar.jsp";
+                    // Todo correcto, visualizaremos el número de registros eliminados
+                    url = new StringBuilder("delete/finEliminar.jsp");
                     request.setAttribute("numero", (Integer) listado.length);
-                    // Añadimos al log de información la operación que se ha realizado
-                    DESC.info("ELIMINAR. Se ha eliminado el registro de anilla "
-                            + clausulaWhere.substring(clausulaWhere.indexOf("(") + 1, clausulaWhere.length() - 2).replaceAll("'", ""));
+                    
+
                 } catch (SQLException e){
 
                     // En el caso de que se haya producido algún error se notificará 
                     //  en el fichero de log
-                    LOGGER.fatal("Problema al ejecutar la instrucción SQL", e);
+
+                    MyLogger.doLog(e, this.getClass(), "error");
+                    url = new StringBuilder("error500.jsp");
                 }
 
             } else {
@@ -159,22 +162,23 @@ public class Concluir extends HttpServlet {
                 try {
                     BeanUtils.populate(ave, request.getParameterMap());
                 } catch (IllegalAccessException | InvocationTargetException ex) {
-                    LOGGER.fatal("Problema con el enlace del formulario con el bean", ex);
+
+                    MyLogger.doLog(ex, this.getClass(), "error");
+                        url = new StringBuilder("error500.jsp");
                 }
                 try {
-                    sql = "insert into aves values(?,?,?,?)";
+                    sql = "insert into pajaros values(?,?,?,?)";
 
                     preparada = conexion.prepareStatement(sql);
                     preparada.setString(1, ave.getAnilla());
                     preparada.setString(2, ave.getEspecie());
                     preparada.setString(3, ave.getLugar());
-                    preparada.setString(4, ave.getFecha());
+                    preparada.setDate(4, ave.getFecha());
 
                     request.setAttribute("pajaro", ave);
                     preparada.executeUpdate();
-                    url = "/JSP/finInsertar.jsp";
-                    // Añadimos al log de información la operación que se ha realizado
-                    DESC.info("ALTAS. Se ha añadido el ave con la anilla " + ave.getAnilla());
+                    url = new StringBuilder("create/finInsertar.jsp");
+                    
 
                 } catch (SQLException ex) {
 
@@ -183,25 +187,33 @@ public class Concluir extends HttpServlet {
                         En el caso de claves duplicadas volvemos a la página insertar.jsp donde se notificará el error y
                         mantendrán los datos anteriormente introducidos salvo la anilla
                         */
+                        MyLogger.doLog(ex, this.getClass(), "error");
+                        
                         request.setAttribute("error", "Se ha intentado duplicar la clave primaria");
-                        url = "/JSP/insertar.jsp";
+                        url = new StringBuilder("create/insertar.jsp");
 
                     } else {
-                        // Añadiremos al log de errores y mostraremos una pantalla de error
-                        LOGGER.fatal("Problema con la instrucción de SQL", ex);
+                        
+                        MyLogger.doLog(ex, this.getClass(), "error");
+                        url = new StringBuilder("error500.jsp");
 
                     }
 
                 }
             }
         } catch (SQLException ex) {
-            LOGGER.fatal("Problema con la conexion a la base de datos", ex);
+
+            MyLogger.doLog(ex, this.getClass(), "error");
+            url = new StringBuilder("error500.jsp");
         } finally {
 
             Conexion.closeConexion(conexion, resultado);
         }
+        if(url.indexOf("index") == -1) {
+            url = url.insert(0, "/JSP/");
+        }
 
-        request.getRequestDispatcher(url).forward(request, response);
+        request.getRequestDispatcher(url.toString()).forward(request, response);
 
     }
 

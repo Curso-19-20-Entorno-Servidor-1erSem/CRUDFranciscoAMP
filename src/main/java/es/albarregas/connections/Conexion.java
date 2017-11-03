@@ -1,31 +1,32 @@
-package es.albarregas.conexion;
+package es.albarregas.connections;
+
+import es.albarregas.utils.MyLogger;
 
 import java.sql.Connection;
-//import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-//import java.sql.Statement;
+
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import org.apache.log4j.Logger;
+
 
 public class Conexion {
 
-    final static Logger LOGGER = Logger.getRootLogger();
-
-    DataSource datasource = null;
+    DataSource datasource;
 
     public static DataSource getDataSource() {
+        
 
         DataSource datasource = null;
         try {
             Context contextoInicial = new InitialContext();
             datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool");
         } catch (NamingException ex) {
-            LOGGER.fatal("Problemas en el acceso al pool de conexiones", ex);
-
+            
+            MyLogger.doLog(ex, Conexion.class, "fatal");
+            
         }
         return datasource;
     }
@@ -36,7 +37,7 @@ public class Conexion {
                 conexion.close();
             }
         } catch (SQLException ex) {
-            LOGGER.fatal("Problemas al cerrar la conexión", ex);
+            MyLogger.doLog(ex, Conexion.class, "error");
         }
 
         try {
@@ -44,7 +45,7 @@ public class Conexion {
                 resultado.close();
             }
         } catch (SQLException ex) {
-            LOGGER.fatal("Problemas al cerrar el ResultSet", ex);
+            MyLogger.doLog(ex, Conexion.class, "error");
         }
     }
 

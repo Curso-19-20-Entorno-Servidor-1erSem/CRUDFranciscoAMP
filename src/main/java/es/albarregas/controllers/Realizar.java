@@ -1,7 +1,9 @@
 package es.albarregas.controllers;
 
 import es.albarregas.beans.Ave;
-import es.albarregas.conexion.Conexion;
+import es.albarregas.connections.Conexion;
+import es.albarregas.utils.MyLogger;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -9,8 +11,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import javax.servlet.ServletConfig;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -18,24 +20,26 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
+
 
 @WebServlet(name = "Realizar", urlPatterns = {"/realiza"})
 public class Realizar extends HttpServlet {
 
-    DataSource datasource = null;
-    final static Logger LOGGER = Logger.getRootLogger();
+    DataSource dataSource = null;
+    
 
+    @Override
     public void init(ServletConfig config) throws ServletException {
 
-        datasource = Conexion.getDataSource();
+        dataSource = Conexion.getDataSource();
+
     }
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String url = null;
+        StringBuilder url = null;
         String sql = null;
         Ave ave = null;
         ArrayList<Ave> aves = null;
@@ -45,12 +49,12 @@ public class Realizar extends HttpServlet {
         Connection conexion = null;
 
         try {
-            conexion = datasource.getConnection();
-            if (request.getParameter("op").equals("lee") || request.getParameter("cancelar") != null) {
+            conexion = dataSource.getConnection();
+            if (request.getParameter("op").equals("read") || request.getParameter("cancelar") != null) {
                 // Ya hemos visto el listado de registros o hemos pulsado Cancelar y volvemos al menú inicial
-                url = "index.html";
+                url = new StringBuilder("index.html");
 
-            } else if (request.getParameter("op").equals("actualiza")) {
+            } else if (request.getParameter("op").equals("update")) {
 
                 if (request.getParameter("registro") != null) {
                     /* 
@@ -58,23 +62,24 @@ public class Realizar extends HttpServlet {
                         que queremos actualizar para mostrarselo al usuario
                      */
 
-                    sql = "select * from aves where anilla = ?";
+                    sql = "select * from pajaros where anilla = ?";
                     preparada = conexion.prepareStatement(sql);
                     preparada.setString(1, request.getParameter("registro"));
                     try {
                         resultado = preparada.executeQuery();
                         resultado.next();
-                        url = "actualizar.jsp";
+                        url = new StringBuilder("update/actualizar.jsp");
                         request.setAttribute("anilla", resultado.getString("anilla"));
                         request.setAttribute("especie", resultado.getString("especie"));
                         request.setAttribute("lugar", resultado.getString("lugar"));
-                        request.setAttribute("fecha", resultado.getString("fecha"));
+                        request.setAttribute("fecha", resultado.getDate("fecha"));
                     } catch (SQLException e) {
-                        LOGGER.fatal("Problemas con la sentencia SQL", e);
+                        MyLogger.doLog(e, this.getClass(), "fatal");
+                        url = new StringBuilder("error500.jsp");
                     }
                 } else {
                     // No hemos elegido ningún registro que actualizar y nos vamos a la página final de actualización
-                    url = "finActualizar.jsp";
+                    url = new StringBuilder("update/finActualizar.jsp");
                 }
 
             } else { // Hemos elegido eliminar
@@ -94,7 +99,7 @@ public class Realizar extends HttpServlet {
                     }
                     clausulaWhere.replace(clausulaWhere.length() - 1, clausulaWhere.length(), ")");
                     // Leemos los registros que queremos eliminar
-                    sql = "select * from aves" + clausulaWhere.toString();
+                    sql = "select * from pajaros" + clausulaWhere.toString();
 
                     sentencia = conexion.createStatement();
                     try {
@@ -105,29 +110,31 @@ public class Realizar extends HttpServlet {
                             ave.setAnilla(resultado.getString("anilla"));
                             ave.setEspecie(resultado.getString("especie"));
                             ave.setLugar(resultado.getString("lugar"));
-                            ave.setFecha(resultado.getString("fecha"));
+                            ave.setFecha(resultado.getDate("fecha"));
                             aves.add(ave);
                         }
                         // Guardamos los registros en un ArrayList y lo lanzamos a un atributo de la petición
                         request.setAttribute("lista", aves);
-                        url = "eliminar.jsp";
+                        url = new StringBuilder("delete/eliminar.jsp");
                     } catch (SQLException e) {
-                        LOGGER.fatal("Problemas con la sentencia SQL", e);
+                        MyLogger.doLog(e, this.getClass(), "fatal");
+                        url = new StringBuilder("error500.jsp");
                     }
                 } else {
                     // No hemos seleccionado ningún registro que eliminar
-                    url = "finEliminar.jsp";
+                    url = new StringBuilder("delete/finEliminar.jsp");
                 }
 
             }
             // En el caso de que no sea visualización los documentos de las diferentes vistas se encuentran en /JSP
-            if (!request.getParameter("op").equals("lee") && request.getParameter("cancelar") == null) {
-                url = "/JSP/" + url;
+            if (!request.getParameter("op").equals("read") && request.getParameter("cancelar") == null) {
+                url = url.insert(0, "/JSP/");
             }
-            request.getRequestDispatcher(url).forward(request, response);
+            request.getRequestDispatcher(url.toString()).forward(request, response);
 
         } catch (SQLException ex) {
-            LOGGER.fatal("Problemas en la conexión a la base de datos o SQL", ex);
+            MyLogger.doLog(ex, this.getClass(), "fatal");
+            url = new StringBuilder("error500.jsp");
         } finally {
 
             Conexion.closeConexion(conexion, resultado);
