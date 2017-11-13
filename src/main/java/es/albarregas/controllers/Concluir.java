@@ -5,7 +5,6 @@ import es.albarregas.connections.Conexion;
 import es.albarregas.utils.MyLogger;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,15 +19,18 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 
-import org.apache.commons.beanutils.BeanUtils;
+import org.apache.log4j.Logger;
 
 
 @WebServlet(name = "Concluir", urlPatterns = {"/conclusion"})
 public class Concluir extends HttpServlet {
 
     DataSource dataSource = null;
+    
+    private final static Logger LOG = Logger.getLogger(Concluir.class);
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -91,6 +93,8 @@ public class Concluir extends HttpServlet {
 
                     }
                     indice++;
+//                    LOG.trace("el valor de la variable indice es " + indice);
+                    
                 }
 
                 if (clausulaWhere.length() != 0) {
@@ -108,7 +112,7 @@ public class Concluir extends HttpServlet {
                         request.setAttribute("registro", request.getParameter("anilla"));
                     } catch(SQLException e) {
                         // En el caso de que se haya producido algún error se notificará en el fichero de log
-
+//                        e.printStackTrace();
                         MyLogger.doLog(e, this.getClass(), "error");
                         url = new StringBuilder("error500.jsp");
                     }
@@ -150,22 +154,25 @@ public class Concluir extends HttpServlet {
 
                     // En el caso de que se haya producido algún error se notificará 
                     //  en el fichero de log
-
+//                    e.printStackTrace();
                     MyLogger.doLog(e, this.getClass(), "error");
                     url = new StringBuilder("error500.jsp");
                 }
 
             } else {
-                // Vamos a crear un nuevo registro y los datos se han introducido en el formulario de la página insertar.jsp
+//                // Vamos a crear un nuevo registro y los datos se han introducido en el formulario de la página insertar.jsp
+                HttpSession sesion = request.getSession();
                 ave = new Ave();
-                // Utilizamos la clase BeanUtills para pasar del formulario a los atributos del bean correspondiente
-                try {
-                    BeanUtils.populate(ave, request.getParameterMap());
-                } catch (IllegalAccessException | InvocationTargetException ex) {
-
-                    MyLogger.doLog(ex, this.getClass(), "error");
-                        url = new StringBuilder("error500.jsp");
-                }
+                ave = (Ave)sesion.getAttribute("pajaro");
+//                // Utilizamos la clase BeanUtills para pasar del formulario a los atributos del bean correspondiente
+//                try {
+//                    BeanUtils.populate(ave, request.getParameterMap());
+//                } catch (IllegalAccessException | InvocationTargetException ex) {
+//
+//                    MyLogger.doLog(ex, this.getClass(), "error");
+//                        url = new StringBuilder("error500.jsp");
+//                }
+                
                 try {
                     sql = "insert into pajaros values(?,?,?,?)";
 
@@ -175,35 +182,35 @@ public class Concluir extends HttpServlet {
                     preparada.setString(3, ave.getLugar());
                     preparada.setDate(4, ave.getFecha());
 
-                    request.setAttribute("pajaro", ave);
+//                    request.setAttribute("pajaro", ave);
                     preparada.executeUpdate();
                     url = new StringBuilder("create/finInsertar.jsp");
                     
 
-                } catch (SQLException ex) {
+                } catch (SQLException e) {
 
-                    if (ex.getErrorCode() == 1062) {
+                    if (e.getErrorCode() == 1062) {
                         /*
                         En el caso de claves duplicadas volvemos a la página insertar.jsp donde se notificará el error y
                         mantendrán los datos anteriormente introducidos salvo la anilla
                         */
-                        MyLogger.doLog(ex, this.getClass(), "error");
+                        MyLogger.doLog(e, this.getClass(), "error");
                         
                         request.setAttribute("error", "Se ha intentado duplicar la clave primaria");
-                        url = new StringBuilder("create/insertar.jsp");
+                        url = new StringBuilder("create/inicioInsertar.jsp");
 
                     } else {
-                        
-                        MyLogger.doLog(ex, this.getClass(), "error");
+//                        e.printStackTrace();
+                        MyLogger.doLog(e, this.getClass(), "error");
                         url = new StringBuilder("error500.jsp");
 
                     }
 
                 }
             }
-        } catch (SQLException ex) {
-
-            MyLogger.doLog(ex, this.getClass(), "error");
+        } catch (SQLException e) {
+//            e.printStackTrace();
+            MyLogger.doLog(e, this.getClass(), "error");
             url = new StringBuilder("error500.jsp");
         } finally {
 

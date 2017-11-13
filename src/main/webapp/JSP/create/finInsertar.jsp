@@ -10,7 +10,8 @@
 <body>
     
     <%
-        Ave ave = (Ave)request.getAttribute("pajaro");
+        HttpSession sesion = request.getSession();
+        Ave ave = (Ave)sesion.getAttribute("pajaro");
     %>
     <div id="principal">
     <h2>Informaci&oacute;n de nuevas altas</h2>

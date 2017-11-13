@@ -5,12 +5,14 @@ import es.albarregas.connections.Conexion;
 import es.albarregas.utils.MyLogger;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -18,15 +20,17 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConversionException;
 
 
 @WebServlet(name = "Realizar", urlPatterns = {"/realiza"})
 public class Realizar extends HttpServlet {
 
     DataSource dataSource = null;
-    
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -74,7 +78,8 @@ public class Realizar extends HttpServlet {
                         request.setAttribute("lugar", resultado.getString("lugar"));
                         request.setAttribute("fecha", resultado.getDate("fecha"));
                     } catch (SQLException e) {
-                        MyLogger.doLog(e, this.getClass(), "fatal");
+//                        e.printStackTrace();
+                        MyLogger.doLog(e, this.getClass(), "error");
                         url = new StringBuilder("error500.jsp");
                     }
                 } else {
@@ -82,7 +87,7 @@ public class Realizar extends HttpServlet {
                     url = new StringBuilder("update/finActualizar.jsp");
                 }
 
-            } else { // Hemos elegido eliminar
+            } else if (request.getParameter("op").equals("delete")) { // Hemos elegido eliminar
 
                 // Almacenamos las anillas de los registros seleccionados para eliminar en el array avesEliminar
                 String[] avesEliminar = request.getParameterValues("registro");
@@ -117,7 +122,8 @@ public class Realizar extends HttpServlet {
                         request.setAttribute("lista", aves);
                         url = new StringBuilder("delete/eliminar.jsp");
                     } catch (SQLException e) {
-                        MyLogger.doLog(e, this.getClass(), "fatal");
+//                        e.printStackTrace();
+                        MyLogger.doLog(e, this.getClass(), "error");
                         url = new StringBuilder("error500.jsp");
                     }
                 } else {
@@ -125,6 +131,42 @@ public class Realizar extends HttpServlet {
                     url = new StringBuilder("delete/finEliminar.jsp");
                 }
 
+            } else {
+                // Cargamos el bean con los datos introducidos
+                ave = new Ave();
+                // Utilizamos la clase BeanUtills para pasar del formulario a los atributos del bean correspondiente
+                try {
+                    BeanUtils.populate(ave, request.getParameterMap());
+
+                    // Comprobamos que todos los campos estén rellenos
+                    boolean error = false;
+                    Enumeration<String> parametros = request.getParameterNames();
+                    while (parametros.hasMoreElements() && !error) {
+                        String nombre = parametros.nextElement();
+                        if (request.getParameter(nombre).length() == 0) {
+                            error = true;
+                        }
+                    }
+                    if (error) {
+                        url = new StringBuilder("create/inicioInsertar.jsp");
+                        request.setAttribute("error", "Todos los campos son obligatorios");
+                        request.setAttribute("pajaro", ave);
+                    } else {
+                        url = new StringBuilder("create/insertar.jsp");
+                        HttpSession sesion = request.getSession(true);
+                        sesion.setAttribute("pajaro", ave);
+                    }
+                } catch (IllegalAccessException | InvocationTargetException e) {
+//                    e.printStackTrace();
+                    MyLogger.doLog(e, this.getClass(), "error");
+                    url = new StringBuilder("error500.jsp");
+                } catch (ConversionException e) {
+//                    System.out.println("He salido por ConversionException");
+//                    e.printStackTrace();
+//                    MyLogger.doLog(e, this.getClass(), "error");
+                    url = new StringBuilder("create/inicioInsertar.jsp");
+                    request.setAttribute("error", "El formato de la fecha no es correcto");
+                }
             }
             // En el caso de que no sea visualización los documentos de las diferentes vistas se encuentran en /JSP
             if (!request.getParameter("op").equals("read") && request.getParameter("cancelar") == null) {
@@ -132,8 +174,9 @@ public class Realizar extends HttpServlet {
             }
             request.getRequestDispatcher(url.toString()).forward(request, response);
 
-        } catch (SQLException ex) {
-            MyLogger.doLog(ex, this.getClass(), "fatal");
+        } catch (SQLException e) {
+//            e.printStackTrace();
+            MyLogger.doLog(e, this.getClass(), "fatal");
             url = new StringBuilder("error500.jsp");
         } finally {
 

@@ -45,13 +45,13 @@ public class Operacion extends HttpServlet {
 
         String operacion = request.getParameter("op");
         if(operacion.equals("create")) {
-            url = new StringBuilder("create/insertar.jsp");
+            url = new StringBuilder("create/inicioInsertar.jsp");
         } else {
             // En caso contrario leemos todos los registros de la tabla para visualizarlos en listado.jsp
 
                 try {
                     conexion = dataSource.getConnection();
-                    sql = "select * from pajaros";
+                    sql = "select * from pajaros1";
                     sentencia = conexion.createStatement();
                     try {
                         resultado = sentencia.executeQuery(sql);
@@ -81,13 +81,15 @@ public class Operacion extends HttpServlet {
 
                     // En caso de error escribimos en el fichero de log y mostramos una pantalla de error
                     } catch (Exception e) {
-                        MyLogger.doLog(e, this.getClass(), "fatal");
+//                        e.printStackTrace();
+                        MyLogger.doLog(e, this.getClass(), "error");
                         url = new StringBuilder("error500.jsp");
                         
             
                     }
                 } catch (SQLException e) {
-                    MyLogger.doLog(e, this.getClass(), "error");
+//                    e.printStackTrace();
+                    MyLogger.doLog(e, this.getClass(), "fatal");
                     url = new StringBuilder("error500.jsp");
                 // Liberamos los recursos
                 } finally {
