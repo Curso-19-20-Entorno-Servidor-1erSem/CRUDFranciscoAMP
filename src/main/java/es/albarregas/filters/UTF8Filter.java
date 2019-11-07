@@ -17,8 +17,11 @@ public class UTF8Filter implements Filter {
 
     private String encoding;
 
+    @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        // TODO Auto-generated method stub
+        /*
+        * Preguntamos si existe el parámetro inicial "requestEncoding" para, en caso contrario, asignarle el valor UTF-8
+        */
         encoding = filterConfig.getInitParameter("requestEncoding");
         if (encoding == null) {
             encoding = "UTF-8";
@@ -28,17 +31,26 @@ public class UTF8Filter implements Filter {
     /**
      * @see Filter#destroy()
      */
+    @Override
     public void destroy() {
         // TODO Auto-generated method stub
     }
 
     /**
+     * @param request
+     * @param response
+     * @param chain
+     * @throws java.io.IOException
+     * @throws javax.servlet.ServletException
      * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
      */
+    @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         request.setCharacterEncoding(encoding);
 
-        // pass the request along the filter chain
+        /*
+        * Reenviamos la petción al componente web destino que estabamos filtrando 
+        */
         chain.doFilter(request, response);
     }
 

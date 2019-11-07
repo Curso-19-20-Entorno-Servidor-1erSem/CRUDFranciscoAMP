@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Context antiJARLocking="true" docBase="crudpool" path="/CRUDPool">
+<Context antiResourceLocking="true" docBase="crudpool" path="/CRUDPool">
   <Resource 
       auth="Container" 
       driverClassName="com.mysql.jdbc.Driver" 
@@ -7,10 +7,10 @@
       maxIdle="30" 
       maxWait="10000" 
       name="jdbc/CRUDPool" 
-      password="2018" 
+      password="2019" 
       type="javax.sql.DataSource" 
       url="jdbc:mysql://localhost:3306/pruebasJAVA" 
-      username="java2018"
+      username="java2019"
   />
 </Context>
 

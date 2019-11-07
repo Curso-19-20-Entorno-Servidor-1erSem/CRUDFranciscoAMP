@@ -18,10 +18,15 @@ div#principal h2 {
     color: blue;
 }
 div#principal div#secundario {
-    width: 40%;
+    width: 60%;
     position: relative;
     float: left;
-    left: 40%;
+    left: 20%;
+}
+div#principal table {
+    width: 40%;
+    position: relative;
+    left: 30%;
 }
 fieldset {
     width: 50%; 
@@ -34,8 +39,8 @@ legend {
 }
 table#listado {
     position: relative; 
-    left: 25%; 
-    width: 50%; 
+    left: 5%; 
+    width: 90%; 
 
 } 
 table#listado td {
@@ -58,6 +63,7 @@ h3 {
 }
 h3.error, p.error{
     color: red;
+    text-align: center;
 
 }
 h3.normal {
@@ -105,4 +111,20 @@ div#principal table {
     width: 70%;
     left: 15%;
     margin: 10px;
+}
+.enlace {
+    display: inline;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    text-decoration: none;
+    background: none;
+    color: #000088;
+    font-family: arial, sans-serif;
+    font-size: 1.2em;
+}
+.enlace:hover {
+    text-decoration: none;
+    color:#0000cc;
+    cursor: pointer;
 }

@@ -5,12 +5,12 @@ import es.albarregas.connections.Conexion;
 import es.albarregas.utils.MyLogger;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Enumeration;
 
 import javax.servlet.ServletConfig;
@@ -19,18 +19,23 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConversionException;
 
 
+/*
+* A este servlet llegan las peticiones realizas desde:
+*   - /JSP/update/actualizar.jsp        cuando se han cambiado los datos de los campos de la base de datos
+*   - /JSP/delete/eliminar.jsp          cuando se ha informado de los registros que se eliminarán de la base de datos
+*/
 @WebServlet(name = "Concluir", urlPatterns = {"/conclusion"})
 public class Concluir extends HttpServlet {
 
     DataSource dataSource = null;
+
     
-    private final static Logger LOG = Logger.getLogger(Concluir.class);
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -47,7 +52,7 @@ public class Concluir extends HttpServlet {
         String sql = null;
         StringBuilder clausulaWhere = new StringBuilder();
         Ave ave = null;
-        ArrayList<Ave> aves = null;
+//        ArrayList<Ave> aves = null;
         Statement sentencia = null;
         PreparedStatement preparada = null;
         ResultSet resultado = null;
@@ -56,80 +61,139 @@ public class Concluir extends HttpServlet {
         try {
             conexion = dataSource.getConnection();
             if (request.getParameter("cancelar") != null) {
-                // En el caso de haber pulsado Cancelar nos dirigimos al menú principal
-                url = new StringBuilder("index.html");
+                /*
+                * Cuando pulsamos cancelar en cualquier página que llame a este Servlet dirigimos el flujo hacia menú principal
+                */
+                url = new StringBuilder("volver");
             } else if (request.getParameter("actualizar") != null) {
-                // Venimos de la página donde se introducen los datos que queremos actualizar (actualizar.jsp)
-                sql = "select * from pajaros where anilla = ?";
-                preparada = conexion.prepareStatement(sql);
-                preparada.setString(1, request.getParameter("anilla"));
-                // Leemos los datos de la base de datos para comprobar los que han cambiado
-                resultado = preparada.executeQuery();
-                resultado.next();
-                Enumeration<String> parametros = request.getParameterNames();
-                int indice = 1;
-                boolean primeraVez = true;
-                /* 
-                Construimos la parte de los cambios de la forma set campo1=valor1,campo2=valor2 ... 
-                o nada en el caso de no haber cambiado ningún valor
-                 */
-                while (parametros.hasMoreElements()) {
-                    String nombre = parametros.nextElement();
+                /*
+                * Venimos de la página donde se introducen los datos que queremos actualizar (actualizar.jsp)
+                * Primero vamos a comprobar los datos de entrada para validarlos
+                */ 
+                ave = new Ave();
+                try {
+                    BeanUtils.populate(ave, request.getParameterMap());
 
-                    if (!nombre.equals("anilla") && !nombre.equals("actualizar")) {
-                        if (!request.getParameter(nombre).equals(resultado.getString(indice))) {
-                            if (primeraVez) {
-                                clausulaWhere.append(" set ");
-                                primeraVez = false;
-                            } else {
-                                clausulaWhere.append(",");
+                    /* 
+                    * Comprobamos que todos los campos estén rellenos
+                    */
+                    boolean error = false;
+                    Enumeration<String> parametros = request.getParameterNames();
+                    while (parametros.hasMoreElements() && !error) {
+                        String nombre = parametros.nextElement();
+                        if (request.getParameter(nombre).length() == 0) {
+                            error = true;
+                        }
+                    }
+                    if (error) {
+                        /*
+                        * En el caso de que exista error se realizan las siguientes funciones:
+                        *   - Cargamos un atributo de petición explicando el error cometido
+                        *   - Dirigimos el flujo hacia el formulario de entrada de datos para actualizar
+                        */
+                        url = new StringBuilder("/JSP/update/actualizar.jsp");
+                        request.setAttribute("error", "Todos los campos son obligatorios");
+                        request.setAttribute("pajaro", ave);
+                    } else {
+                        /*
+                        * Leemos el registro de la base de datos para poder comprobar los campos que han cambiado
+                        */
+                        sql = "select * from aves where anilla = ?";
+                        preparada = conexion.prepareStatement(sql);
+                        preparada.setString(1, request.getParameter("anilla"));
+                        
+                        resultado = preparada.executeQuery();
+                        resultado.next();
+                        parametros = request.getParameterNames();
+                        int indice = 1;
+                        boolean primeraVez = true;
+                        /* 
+                        * Construimos la parte de los cambios de la forma set campo1=valor1,campo2=valor2 ... 
+                        * o nada en el caso de no haber cambiado ningún valor
+                         */
+                        while (parametros.hasMoreElements()) {
+                            String nombre = parametros.nextElement();
+
+                            if (!nombre.equals("anilla") && !nombre.equals("actualizar")) {
+                                if (!request.getParameter(nombre).equals(resultado.getString(indice))) {
+                                    if (primeraVez) {
+                                        clausulaWhere.append(" set ");
+                                        primeraVez = false;
+                                    } else {
+                                        clausulaWhere.append(",");
+                                    }
+
+                                    clausulaWhere.append(nombre).append("='").append(request.getParameter(nombre)).append("'");
+
+                                }
+
                             }
+                            indice++;
 
-                            clausulaWhere.append(nombre);
-                            clausulaWhere.append("='");
-                            clausulaWhere.append(request.getParameter(nombre));
-                            clausulaWhere.append("'");
+
                         }
 
+                        if (clausulaWhere.length() != 0) {
+                            /* 
+                            * Se han realizado cambios en el registro y por lo tanto actualizamos la base de datos y 
+                            * en la página final de la actualización se informa que se ha cambiado el registro
+                            */
+                            sql = "update aves" + clausulaWhere.toString() + " where anilla=?";
+                            
+                            preparada = conexion.prepareStatement(sql);
+                            preparada.setString(1, request.getParameter("anilla"));
+                            try {
+
+                                preparada.executeUpdate();
+
+                                
+                                request.setAttribute("registro", request.getParameter("anilla"));
+                            } catch (SQLException e) {
+                                /*
+                                * Existe un error al ejecutar la sentencia update. Escribimos el logger y se visualiza error500.jsp
+                                */
+                                MyLogger.doLog(e, this.getClass(), "error");
+
+                            }
+
+                        } else {
+                            /*
+                            * No se han realizado cambios en ninguno de los campos y en la última página de actualizar informaremos de ello
+                            */
+
+                            request.setAttribute("sincambios", (Boolean) true);
+
+                        }
+                        /*
+                        * Dirigimos el flujo a la última página jsp de la rama de actualización
+                        */
+                        url = new StringBuilder("/JSP/update/finActualizar.jsp");
                     }
-                    indice++;
-//                    LOG.trace("el valor de la variable indice es " + indice);
-                    
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    /*
+                    * Existe un error al utilizar la clase BeanUtils. Escribimos el logger y se visualiza error500.jsp
+                    */
+                    MyLogger.doLog(e, this.getClass(), "error");
+                } catch (ConversionException e) {
+                    /*
+                    * Se ha producido un error en el formato de la fecha de entrada. Es un catch producido por BeanUtils.populate y realizamos:
+                    *   - Cargamos un atributo de petición con el objeto ave para luego mostrar los datos junto con el error
+                    *   - Cargamos un atributo de petición explicando el error cometido
+                    *   - Dirigimos el flujo hacia el formulario de entrada de datos para actualizar
+                    */
+                    url = new StringBuilder("/JSP/update/actualizar.jsp");
+                    request.setAttribute("pajaro", ave);
+                    request.setAttribute("error", "El formato de la fecha no es correcto");
                 }
 
-                if (clausulaWhere.length() != 0) {
-                    // Si se han realizado cambios en el registro
-                    sql = "update pajaros" + clausulaWhere.toString() + " where anilla='" + request.getParameter("anilla") + "'";
-                    // Actualizamos el registro en la base de datos
-                    sentencia = conexion.createStatement();
-                    try {
-
-                        sentencia.executeUpdate(sql);
-                        url = new StringBuilder("update/finActualizar.jsp");
-                        // Añadimos al log de información la operación que se ha realizado
-
-                        
-                        request.setAttribute("registro", request.getParameter("anilla"));
-                    } catch(SQLException e) {
-                        // En el caso de que se haya producido algún error se notificará en el fichero de log
-//                        e.printStackTrace();
-                        MyLogger.doLog(e, this.getClass(), "error");
-                        url = new StringBuilder("error500.jsp");
-                    }
-
-                } else {
-                    // Visualizaremos que no se han realizado cambios
-                    url = new StringBuilder("update/finActualizar.jsp");
-                    request.setAttribute("sincambios", (Boolean) true);
-
-                }
             } else if (request.getParameter("eliminar") != null) {
                 /*
-                Venimos de la página donde se han mostrado los registros que se pretenden eliminar.
-                Hemos pasado en unos campos de texto ocultos las diferentes anillas que se quieren eliminar
-                 */
+                * Venimos de la página donde se han mostrado los registros que se pretenden eliminar (eliminar.jsp).
+                * Hemos pasado en unos campos ocultos las diferentes anillas que se quieren eliminar 
+                * para construir la cláusula where de la forma: where anilla in ('a1','a2') 
+                */
                 String[] listado = request.getParameterValues("anilla");
-                // Construimos la clausula where de la forma where anilla in ('a1','a2')
+                
                 clausulaWhere = new StringBuilder(" where anilla in (");
                 for (String anilla : listado) {
                     clausulaWhere.append("'");
@@ -139,87 +203,46 @@ public class Concluir extends HttpServlet {
 
                 }
                 clausulaWhere.replace(clausulaWhere.length() - 1, clausulaWhere.length(), ")");
-                sql = "delete from pajaros " + clausulaWhere.toString();
+                /*
+                * Hacemos efectivo el borrado de las aves seleccionadas
+                */
+                sql = "delete from aves " + clausulaWhere.toString();
 
                 sentencia = conexion.createStatement();
 
                 try {
+                    /*
+                    * Todo correcto se digrige el flujo a la última página de la rama eliminar dode se informará de los registros eliminados
+                    */
                     sentencia.executeUpdate(sql);
-                    // Todo correcto, visualizaremos el número de registros eliminados
-                    url = new StringBuilder("delete/finEliminar.jsp");
+                    
+                    url = new StringBuilder("/JSP/delete/finEliminar.jsp");
                     request.setAttribute("numero", (Integer) listado.length);
-                    
-
-                } catch (SQLException e){
-
-                    // En el caso de que se haya producido algún error se notificará 
-                    //  en el fichero de log
-//                    e.printStackTrace();
-                    MyLogger.doLog(e, this.getClass(), "error");
-                    url = new StringBuilder("error500.jsp");
-                }
-
-            } else {
-//                // Vamos a crear un nuevo registro y los datos se han introducido en el formulario de la página insertar.jsp
-                HttpSession sesion = request.getSession();
-                ave = new Ave();
-                ave = (Ave)sesion.getAttribute("pajaro");
-//                // Utilizamos la clase BeanUtills para pasar del formulario a los atributos del bean correspondiente
-//                try {
-//                    BeanUtils.populate(ave, request.getParameterMap());
-//                } catch (IllegalAccessException | InvocationTargetException ex) {
-//
-//                    MyLogger.doLog(ex, this.getClass(), "error");
-//                        url = new StringBuilder("error500.jsp");
-//                }
-                
-                try {
-                    sql = "insert into pajaros values(?,?,?,?)";
-
-                    preparada = conexion.prepareStatement(sql);
-                    preparada.setString(1, ave.getAnilla());
-                    preparada.setString(2, ave.getEspecie());
-                    preparada.setString(3, ave.getLugar());
-                    preparada.setDate(4, ave.getFecha());
-
-//                    request.setAttribute("pajaro", ave);
-                    preparada.executeUpdate();
-                    url = new StringBuilder("create/finInsertar.jsp");
-                    
 
                 } catch (SQLException e) {
-
-                    if (e.getErrorCode() == 1062) {
-                        /*
-                        En el caso de claves duplicadas volvemos a la página insertar.jsp donde se notificará el error y
-                        mantendrán los datos anteriormente introducidos salvo la anilla
-                        */
-                        MyLogger.doLog(e, this.getClass(), "error");
-                        
-                        request.setAttribute("error", "Se ha intentado duplicar la clave primaria");
-                        url = new StringBuilder("create/inicioInsertar.jsp");
-
-                    } else {
-//                        e.printStackTrace();
-                        MyLogger.doLog(e, this.getClass(), "error");
-                        url = new StringBuilder("error500.jsp");
-
-                    }
+                    /*
+                    * Existe un error al ejecutar la sentencia delete. Escribimos el logger y se visualiza error500.jsp
+                    */
+                    MyLogger.doLog(e, this.getClass(), "error");
 
                 }
-            }
+
+            } 
         } catch (SQLException e) {
-//            e.printStackTrace();
+            /*
+            * Existe un error al intentar abrir la conexión. Escribimos el logger y se visualiza error500.jsp
+            */
             MyLogger.doLog(e, this.getClass(), "error");
-            url = new StringBuilder("error500.jsp");
+
         } finally {
-
-            Conexion.closeConexion(conexion, resultado);
+            /*
+            * Liberamos recursos
+            */
+            Conexion.closeConexion(conexion);
         }
-        if(url.indexOf("index") == -1) {
-            url = url.insert(0, "/JSP/");
-        }
-
+        /*
+        * Hacemos efectivo el flujo de la aplicación
+        */
         request.getRequestDispatcher(url.toString()).forward(request, response);
 
     }

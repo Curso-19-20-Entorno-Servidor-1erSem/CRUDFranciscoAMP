@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
     <head>
         <title>CRUD Aves</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -7,14 +7,15 @@
     </head>
     <body>
         <div id="principal">
-            <h2>CRUD de la tabla aves</h2>
+            <h2>Operaciones b&aacute;sicas con los datos de las aves</h2>
             <div id="secundario">
+                <form action="operacion" method="post">
+                    <p><input type="submit" name="boton" value="(C) A&ntilde;adir una nueva" class="enlace" /></p>
+                    <p><input type="submit" name="boton" value="(R) Visualizar todas" class="enlace" /></p>
+                    <p><input type="submit" name="boton" value="(U) Cambiar los datos de una" class="enlace" /></p>
+                    <p><input type="submit" name="boton" value="(D) Eliminar una o varias" class="enlace" /></p>
 
-                <a href="operacion?op=create">(C) Insertar</a><br/>
-                <a href="operacion?op=read">(R) Visualizar</a><br/>
-                <a href="operacion?op=update">(U) Actualizar</a><br/>
-                <a href="operacion?op=delete">(D) Eliminar</a>
-
+                </form>
             </div>
         </div>
     </body>

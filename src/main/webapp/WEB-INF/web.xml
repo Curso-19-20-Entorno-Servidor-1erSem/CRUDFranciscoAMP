@@ -9,14 +9,9 @@
             30
         </session-timeout>
     </session-config>
-    <resource-ref>
-        <description>CRUD con Pool de conexiones</description>
-        <res-ref-name>jdbc/CRUDPool</res-ref-name>
-        <res-type>javax.sql.DataSource</res-type>
-        <res-auth>Container</res-auth>
-    </resource-ref>
+
     <error-page>
         <error-code>500</error-code>
-        <location>/JSP/error500.jsp</location>
+        <location>/JSP/general/error500.jsp</location>
     </error-page>
 </web-app>

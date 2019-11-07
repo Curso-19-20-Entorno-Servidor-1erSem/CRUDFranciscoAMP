@@ -1,49 +1,53 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@page import="es.albarregas.beans.Ave" %>
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <title>Actualizar</title>
+        <link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
+        <%@include file="/INC/metas.inc"%>
+    </head>
+    <body>
+        <div id="principal">
+            <h2>Actualizar los datos de un ave</h2>
+            <%
+            Ave ave = (Ave) request.getAttribute("pajaro");
+            %>
+            <table>
+                <form action="conclusion" method="post">
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Actualizar</title>
-<link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/CSS/estilo.css" />
-</head>
-<body>
-    <div id="principal">
-    <h2>Actualizar los datos de un ave</h2>
-    <table>
-        <form action="conclusion" method="post">
-    
-    
-    <tr>
-        <td>Anilla</td>
-        <td><%=request.getAttribute("anilla")%></td>
-        <input type="hidden" name="anilla" value="<%=request.getAttribute("anilla")%>" />
-        
-    </tr>
-    <tr>
-        <td>Especie</td>
-        <td><input type="text" name="especie" value="<%=request.getAttribute("especie")%>" /></td>
-    </tr>
-    <tr>
-        <td>Lugar</td>
-        <td><input type="text" name="lugar" value="<%=request.getAttribute("lugar")%>" /></td>
-    </tr>
-    <tr>
-        <td>Fecha</td>
-        <td><input type="text" name="fecha" value="<%=request.getAttribute("fecha")%>" /></td>
-    </tr>
-    <tr><td colspan="4">&nbsp;</td></tr>
-    <tr>
-        <td colspan="2"><input type="submit" name="cancelar" value="Cancelar" /></td>
-        <td colspan="2"><input type="submit" name="actualizar" value="Actualizar" /></td>
-    </tr>
-    
-        </form>
-    </table>
-    
-    </div>    
 
-<br />
+                    <tr>
+                        <td>Anilla</td>
+                        <td><%=ave.getAnilla()%></td>
+                    <input type="hidden" name="anilla" value="<%=ave.getAnilla()%>" />
 
-</body>
+                    </tr>
+                    <tr>
+                        <td>Especie</td>
+                        <td><input type="text" name="especie" value="<%=ave.getEspecie()%>" /></td>
+                    </tr>
+                    <tr>
+                        <td>Lugar</td>
+                        <td><input type="text" name="lugar" value="<%=ave.getLugar()%>" /></td>
+                    </tr>
+                    <tr>
+                        <td>Fecha</td>
+                        <td><input type="text" name="fecha" value="<%=(ave.getFecha()!=null)?ave.getFecha():""%>" /></td>
+                    </tr>
+                    <tr><td colspan="4"><p class="error"><%=(request.getAttribute("error")!=null)?request.getAttribute("error"):""%></p></td></tr>
+                    <tr>
+                        <td colspan="2"><input type="submit" name="cancelar" value="Cancelar" class="enlace"></td>
+                        <td colspan="2"><input type="submit" name="actualizar" value="Actualizar" class="enlace"></td>
+                    </tr>
+
+                </form>
+            </table>
+
+        </div>    
+
+        <br />
+
+    </body>
 </html>

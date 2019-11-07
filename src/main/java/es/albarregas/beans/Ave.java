@@ -5,10 +5,10 @@ import java.sql.Date;
 
 public class Ave implements Serializable{
 
-    String anilla;
-    String especie;
-    String lugar;
-    Date fecha;
+    private String anilla;
+    private String especie;
+    private String lugar;
+    private Date fecha;
 
     public String getAnilla() {
         return anilla;

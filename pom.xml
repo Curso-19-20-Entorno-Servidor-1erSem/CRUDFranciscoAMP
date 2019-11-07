@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>es.albarregas</groupId>
-    <artifactId>CRUDPool</artifactId>
+    <artifactId>CRUDPoolFranciscoAMP</artifactId>
     <version>1.0</version>
     <packaging>war</packaging>
 
-    <name>CRUDPool</name>
+    <name>CRUDPoolFranciscoAMP</name>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -32,12 +32,20 @@
             <artifactId>commons-beanutils</artifactId>
             <version>1.8.3</version>
         </dependency>
+        
         <!-- https://mvnrepository.com/artifact/log4j/log4j -->
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.16</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.webjars.bower/jquery -->
+<dependency>
+    <groupId>org.webjars.bower</groupId>
+    <artifactId>jquery</artifactId>
+    <version>2.2.1</version>
+</dependency>
 
 
 
