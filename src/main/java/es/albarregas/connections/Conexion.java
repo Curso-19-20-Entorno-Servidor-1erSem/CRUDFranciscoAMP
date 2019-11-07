@@ -29,7 +29,7 @@ public class Conexion {
             *   - Realizamos la búsqueda del recurso haciendo el casting correspondiente con la sentecia lookup
             */
             Context contextoInicial = new InitialContext();
-            datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDPool");
+            datasource = (DataSource) contextoInicial.lookup("java:comp/env/jdbc/CRUDool");
         } catch (NamingException ex) {
             /*
             * Existe un error al intentar crear el pool de conexiones. Escribimos el logger y se visualiza error500.jsp

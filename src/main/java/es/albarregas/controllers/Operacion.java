@@ -78,7 +78,10 @@ public class Operacion extends HttpServlet {
             */
             try {
                 conexion = dataSource.getConnection();
-                sql = "select * from aves";
+                /**
+                 * Se fuerza el error al cambiar el nombre de la tabla.
+                 */
+                sql = "select * from ave";
                 sentencia = conexion.createStatement();
                 try {
                     resultado = sentencia.executeQuery(sql);
